@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
 
     # LLM Settings
-    GROQ_MODEL: str = "mixtral-8x7b-32768"
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
     MAX_TOKENS: int = 2048
     TEMPERATURE: float = 0.7
 
