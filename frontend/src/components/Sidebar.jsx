@@ -9,6 +9,14 @@ export default function Sidebar({ conversations, currentId, onSelect, onNew, onD
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSignOut = async () => {
+    // If this is the demo account, clear all conversations before logging out
+    if (user?.email === 'demo@example.com') {
+      try {
+        await api.delete('/conversations/all');
+      } catch (e) {
+        // Non-critical, continue with sign out
+      }
+    }
     await signOut();
     navigate('/login');
   };

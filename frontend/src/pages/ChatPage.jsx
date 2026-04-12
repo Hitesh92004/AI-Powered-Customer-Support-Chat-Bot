@@ -3,6 +3,7 @@ import Sidebar from '../components/Sidebar';
 import ChatWindow from '../components/ChatWindow';
 import MessageInput from '../components/MessageInput';
 import DocumentUpload from '../components/DocumentUpload';
+import AboutModal from '../components/AboutModal';
 import { api, streamChat } from '../lib/api';
 
 export default function ChatPage() {
@@ -100,7 +101,11 @@ export default function ChatPage() {
   };
 
   const handleDocumentUploaded = (doc) => {
-    setDocumentContext(doc.content_preview);
+    // Start a fresh conversation scoped to this document
+    setCurrentConversationId(null);
+    setMessages([]);
+    setDocumentContext(doc.content_preview || doc.extracted_text || null);
+    setShowUpload(false);
   };
 
   return (
@@ -151,6 +156,9 @@ export default function ChatPage() {
         conversationId={currentConversationId}
         onDocumentUploaded={handleDocumentUploaded}
       />
+
+      {/* About Developer Floating Button */}
+      <AboutModal />
     </div>
   );
 }

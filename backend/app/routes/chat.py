@@ -8,7 +8,7 @@ from fastapi.responses import StreamingResponse
 
 from app.middleware.auth import get_current_user
 from app.models.schemas import ChatRequest, ChatResponse
-from app.services import groq_service as groq_svc
+from app.services import gemini_service as llm_svc
 from app.services import db_service as db
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ async def chat(request: ChatRequest, user_id: str = Depends(get_current_user)):
 
     # Get AI response
     try:
-        ai_response = await groq_svc.groq_service.chat(
+        ai_response = await llm_svc.gemini_service.chat(
             user_message=request.message,
             history=history_dicts,
             document_context=request.document_context,
@@ -78,7 +78,7 @@ async def chat_stream(request: ChatRequest, user_id: str = Depends(get_current_u
         full_response = ""
         yield f"data: {json.dumps({'type': 'meta', 'conversation_id': conversation_id})}\n\n"
         try:
-            async for chunk in groq_svc.groq_service.stream_chat(
+            async for chunk in llm_svc.gemini_service.stream_chat(
                 user_message=request.message,
                 history=history_dicts,
                 document_context=request.document_context,

@@ -37,6 +37,14 @@ async def create_conversation(body: ConversationCreate, user_id: str = Depends(g
     )
 
 
+@router.delete("/all", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_all_conversations(user_id: str = Depends(get_current_user)):
+    """Delete ALL conversations for the current user. Used for demo cleanup."""
+    conversations = await db.get_conversations(user_id)
+    for conv in conversations:
+        await db.delete_conversation(str(conv["id"]), user_id)
+
+
 @router.get("/{conversation_id}", response_model=ConversationMessagesResponse)
 async def get_conversation(conversation_id: str, user_id: str = Depends(get_current_user)):
     conversation = await db.get_conversation_by_id(conversation_id, user_id)

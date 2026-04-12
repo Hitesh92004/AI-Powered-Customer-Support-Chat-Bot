@@ -9,8 +9,9 @@ class Settings(BaseSettings):
     # Neon PostgreSQL
     DATABASE_URL: str = ""          # postgresql+asyncpg://user:pass@host/db
 
-    # Groq API
-    GROQ_API_KEY: str = ""
+    # Gemini API
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-1.5-flash"
 
     # JWT Auth
     JWT_SECRET_KEY: str = "change-this-to-a-long-random-secret"
@@ -25,7 +26,6 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
 
     # LLM Settings
-    GROQ_MODEL: str = "llama-3.3-70b-versatile"
     MAX_TOKENS: int = 2048
     TEMPERATURE: float = 0.7
 
