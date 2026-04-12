@@ -2,80 +2,23 @@
 Chat routes — POST /api/chat with streaming support.
 """
 import logging
+import json
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
-import json
 
 from app.middleware.auth import get_current_user
 from app.models.schemas import ChatRequest, ChatResponse
-from app.services import groq_service as groq_svc, supabase_service as db
+from app.services import groq_service as groq_svc
+from app.services import db_service as db
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
 
 
 @router.post("", response_model=ChatResponse)
-async def chat(
-    request: ChatRequest,
-    user_id: str = Depends(get_current_user),
-):
-    """
-    Send a message and get an AI response.
-    Creates a new conversation if conversation_id is not provided.
-    """
-    # 1. Get or create conversation
-    if request.conversation_id:
-        conversation = await db.get_conversation_by_id(request.conversation_id, user_id)
-        if not conversation:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Conversation not found.",
-            )
-        conversation_id = request.conversation_id
-    else:
-        # Auto-title from first message
-        title = request.message[:60] + ("..." if len(request.message) > 60 else "")
-        conversation = await db.create_conversation(user_id, title)
-        conversation_id = conversation["id"]
-
-    # 2. Fetch conversation history for context
-    history = await db.get_messages(conversation_id)
-    history_dicts = [{"role": m["role"], "content": m["content"]} for m in history]
-
-    # 3. Save user message
-    user_msg = await db.save_message(conversation_id, "user", request.message)
-
-    # 4. Get AI response
-    try:
-        ai_response = await groq_svc.groq_service.chat(
-            user_message=request.message,
-            history=history_dicts,
-            document_context=request.document_context,
-        )
-    except RuntimeError as e:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e))
-
-    # 5. Save assistant message
-    assistant_msg = await db.save_message(conversation_id, "assistant", ai_response)
-
-    return ChatResponse(
-        response=ai_response,
-        conversation_id=conversation_id,
-        user_message_id=user_msg["id"],
-        assistant_message_id=assistant_msg["id"],
-    )
-
-
-@router.post("/stream")
-async def chat_stream(
-    request: ChatRequest,
-    user_id: str = Depends(get_current_user),
-):
-    """
-    Stream an AI response using Server-Sent Events.
-    Creates a new conversation if conversation_id is not provided.
-    """
-    # 1. Get or create conversation
+async def chat(request: ChatRequest, user_id: str = Depends(get_current_user)):
+    """Send a message and get a full AI response."""
+    # Get or create conversation
     if request.conversation_id:
         conversation = await db.get_conversation_by_id(request.conversation_id, user_id)
         if not conversation:
@@ -84,20 +27,56 @@ async def chat_stream(
     else:
         title = request.message[:60] + ("..." if len(request.message) > 60 else "")
         conversation = await db.create_conversation(user_id, title)
-        conversation_id = conversation["id"]
+        conversation_id = str(conversation["id"])
 
-    # 2. Fetch history
+    # Fetch history for context
     history = await db.get_messages(conversation_id)
     history_dicts = [{"role": m["role"], "content": m["content"]} for m in history]
 
-    # 3. Save user message
+    # Save user message
+    user_msg = await db.save_message(conversation_id, "user", request.message)
+
+    # Get AI response
+    try:
+        ai_response = await groq_svc.groq_service.chat(
+            user_message=request.message,
+            history=history_dicts,
+            document_context=request.document_context,
+        )
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+    # Save assistant message
+    assistant_msg = await db.save_message(conversation_id, "assistant", ai_response)
+
+    return ChatResponse(
+        response=ai_response,
+        conversation_id=conversation_id,
+        user_message_id=str(user_msg["id"]),
+        assistant_message_id=str(assistant_msg["id"]),
+    )
+
+
+@router.post("/stream")
+async def chat_stream(request: ChatRequest, user_id: str = Depends(get_current_user)):
+    """Stream an AI response using Server-Sent Events."""
+    if request.conversation_id:
+        conversation = await db.get_conversation_by_id(request.conversation_id, user_id)
+        if not conversation:
+            raise HTTPException(status_code=404, detail="Conversation not found.")
+        conversation_id = request.conversation_id
+    else:
+        title = request.message[:60] + ("..." if len(request.message) > 60 else "")
+        conversation = await db.create_conversation(user_id, title)
+        conversation_id = str(conversation["id"])
+
+    history = await db.get_messages(conversation_id)
+    history_dicts = [{"role": m["role"], "content": m["content"]} for m in history]
     await db.save_message(conversation_id, "user", request.message)
 
     async def generate():
         full_response = ""
-        # Send conversation_id first
         yield f"data: {json.dumps({'type': 'meta', 'conversation_id': conversation_id})}\n\n"
-
         try:
             async for chunk in groq_svc.groq_service.stream_chat(
                 user_message=request.message,
@@ -110,15 +89,8 @@ async def chat_stream(
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
             return
 
-        # Save the full assistant message once streaming is done
         await db.save_message(conversation_id, "assistant", full_response)
         yield f"data: {json.dumps({'type': 'done', 'conversation_id': conversation_id})}\n\n"
 
-    return StreamingResponse(
-        generate(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",
-        },
-    )
+    return StreamingResponse(generate(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})

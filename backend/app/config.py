@@ -1,21 +1,21 @@
 """
 Application configuration using Pydantic Settings.
-Loads environment variables from .env file.
 """
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    """Application settings loaded from environment variables."""
+    # Neon PostgreSQL
+    DATABASE_URL: str = ""          # postgresql+asyncpg://user:pass@host/db
 
     # Groq API
     GROQ_API_KEY: str = ""
 
-    # Supabase
-    SUPABASE_URL: str = ""
-    SUPABASE_SERVICE_KEY: str = ""
-    SUPABASE_ANON_KEY: str = ""
+    # JWT Auth
+    JWT_SECRET_KEY: str = "change-this-to-a-long-random-secret"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_MINUTES: int = 60 * 24 * 7   # 7 days
 
     # Frontend URL (for CORS)
     FRONTEND_URL: str = "http://localhost:5173"
@@ -41,7 +41,6 @@ class Settings(BaseSettings):
 
 @lru_cache()
 def get_settings() -> Settings:
-    """Cached settings instance."""
     return Settings()
 
 

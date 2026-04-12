@@ -4,15 +4,14 @@ Pydantic models/schemas for request and response validation.
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
-from uuid import UUID
 
 
-# ─── Chat Schemas ────────────────────────────────────────────────────────────
+# ─── Chat Schemas ─────────────────────────────────────────────────────────────
 
 class ChatRequest(BaseModel):
-    message: str = Field(..., min_length=1, max_length=10000, description="User message")
-    conversation_id: Optional[str] = Field(None, description="Existing conversation ID")
-    document_context: Optional[str] = Field(None, description="Context from uploaded document")
+    message: str = Field(..., min_length=1, max_length=10000)
+    conversation_id: Optional[str] = None
+    document_context: Optional[str] = None
 
 
 class ChatResponse(BaseModel):
@@ -69,17 +68,10 @@ class DocumentUploadResponse(BaseModel):
     message: str = "Document processed successfully"
 
 
-# ─── Health Check ─────────────────────────────────────────────────────────────
+# ─── Health ───────────────────────────────────────────────────────────────────
 
 class HealthResponse(BaseModel):
     status: str
     version: str = "1.0.0"
     groq_configured: bool
-    supabase_configured: bool
-
-
-# ─── Error Schemas ────────────────────────────────────────────────────────────
-
-class ErrorResponse(BaseModel):
-    error: str
-    detail: Optional[str] = None
+    db_connected: bool

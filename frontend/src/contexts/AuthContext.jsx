@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 
 const AuthContext = createContext({});
 
@@ -8,36 +8,46 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for changes on auth state (logged in, signed out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    // Restore user from localStorage on page load
+    const stored = localStorage.getItem('user');
+    const token = localStorage.getItem('access_token');
+    if (stored && token) {
+      setUser(JSON.parse(stored));
+    }
+    setLoading(false);
   }, []);
 
-  const value = {
-    signUp: (email, password) => supabase.auth.signUp({ email, password }),
-    signIn: (email, password) => supabase.auth.signInWithPassword({ email, password }),
-    signOut: () => supabase.auth.signOut(),
-    user,
-    loading
+  const signUp = async (email, password) => {
+    const res = await api.post('/auth/register', { email, password });
+    const { access_token, user_id } = res.data;
+    const userData = { id: user_id, email };
+    localStorage.setItem('access_token', access_token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+    return { data: res.data, error: null };
+  };
+
+  const signIn = async (email, password) => {
+    const res = await api.post('/auth/login', { email, password });
+    const { access_token, user_id } = res.data;
+    const userData = { id: user_id, email };
+    localStorage.setItem('access_token', access_token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+    return { data: res.data, error: null };
+  };
+
+  const signOut = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
       {!loading && children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);

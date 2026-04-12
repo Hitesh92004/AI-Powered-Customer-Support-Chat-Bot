@@ -1,12 +1,9 @@
 """
-Authentication middleware — verifies Supabase JWT tokens.
+Authentication middleware — validates JWT tokens from Authorization header.
 """
-import logging
 from fastapi import HTTPException, Security, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from app.services.supabase_service import verify_user_token
-
-logger = logging.getLogger(__name__)
+from app.services.auth_service import decode_access_token
 
 security = HTTPBearer()
 
@@ -15,17 +12,17 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Security(security),
 ) -> str:
     """
-    FastAPI dependency that verifies the Bearer token and returns user_id.
-    Use as: user_id: str = Depends(get_current_user)
+    FastAPI dependency — validates the Bearer JWT token and returns user_id.
+    Usage: user_id: str = Depends(get_current_user)
     """
     token = credentials.credentials
-    user_id = await verify_user_token(token)
+    payload = decode_access_token(token)
 
-    if not user_id:
+    if not payload or "sub" not in payload:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired authentication token.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    return user_id
+    return payload["sub"]  # user_id (UUID string)

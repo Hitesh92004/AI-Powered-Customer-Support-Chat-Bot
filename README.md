@@ -1,6 +1,6 @@
 # AI Customer Support Chatbot
 
-A production-ready AI Customer Support Chatbot built with **React + Vite** on the frontend, **Python FastAPI** on the backend, **Supabase** for database and auth, and **Groq API** (free tier) for LLM responses.
+A production-ready AI Customer Support Chatbot built with **React + Vite** on the frontend, **Python FastAPI** on the backend, **Neon (PostgreSQL)** for database, custom JWT for auth, and **Groq API** (free tier) for LLM responses.
 
 ---
 
@@ -10,9 +10,9 @@ A production-ready AI Customer Support Chatbot built with **React + Vite** on th
 |---|---|
 | Frontend | React 18 + Vite + Tailwind CSS v3 |
 | Backend | Python 3.11+ + FastAPI |
-| Database | Supabase (PostgreSQL) |
+| Database | Neon (Serverless PostgreSQL) locally via asyncpg |
+| Auth | Custom JWT (python-jose + bcrypt) |
 | LLM | Groq API — Mixtral 8x7B |
-| Auth | Supabase Auth |
 | Deployment | Vercel (frontend) + Render (backend) |
 
 ---
@@ -25,7 +25,7 @@ chatbot-project/
 │   ├── src/
 │   │   ├── components/        # Sidebar, ChatWindow, MessageBubble, MessageInput, DocumentUpload
 │   │   ├── pages/             # LoginPage, ChatPage
-│   │   ├── lib/               # supabase.js, api.js
+│   │   ├── lib/               # api.js
 │   │   └── contexts/          # AuthContext.jsx
 │   ├── .env.example
 │   └── vercel.json
@@ -34,31 +34,27 @@ chatbot-project/
 │   ├── app/
 │   │   ├── main.py
 │   │   ├── config.py
-│   │   ├── routes/            # chat.py, conversations.py, documents.py
-│   │   ├── services/          # groq_service.py, supabase_service.py, document_service.py
+│   │   ├── routes/            # auth.py, chat.py, conversations.py, documents.py
+│   │   ├── services/          # groq_service.py, db_service.py, auth_service.py, document_service.py
 │   │   ├── models/            # schemas.py
 │   │   └── middleware/        # auth.py
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   └── .env.example
 │
-└── supabase/
-    └── schema.sql             # Run this in Supabase SQL Editor
+└── neon/
+    └── schema.sql             # Run this in Neon SQL Editor
 ```
 
 ---
 
 ## 🚀 Setup Guide
 
-### 1. Supabase Setup
+### 1. Database Setup (Neon PostgreSQL)
 
-1. Go to [supabase.com](https://supabase.com) and create a new project
-2. In the **SQL Editor**, paste and run the contents of `supabase/schema.sql`
-3. Go to **Project Settings → API** and note:
-   - `Project URL`
-   - `anon` public key
-   - `service_role` secret key
-4. Enable **Email Auth** under Authentication → Providers
+1. Go to [neon.tech](https://neon.tech) and create a new project.
+2. In the **SQL Editor**, paste and run the contents of `neon/schema.sql` to create tables, indexes, and triggers.
+3. Note your connection string (looks like `postgresql://username:password@ep-xxx-xxx.us-east-1.aws.neon.tech/neondb?sslmode=require`).
 
 ### 2. Groq API Key
 
@@ -88,10 +84,10 @@ copy .env.example .env
 
 Edit `backend/.env`:
 ```env
+DATABASE_URL=postgresql://user:pass@ep-....aws.neon.tech/neondb?sslmode=require
 GROQ_API_KEY=gsk_...
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_KEY=eyJ...
-SUPABASE_ANON_KEY=eyJ...
+JWT_SECRET_KEY=your-very-long-random-secret-key-at-least-32-chars
+JWT_EXPIRE_MINUTES=10080
 FRONTEND_URL=http://localhost:5173
 ```
 
@@ -113,13 +109,11 @@ copy .env.example .env
 
 Edit `frontend/.env`:
 ```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJ...
 VITE_API_URL=http://localhost:8000/api
 ```
 
 ```bash
-# Install dependencies (already done if using this repo)
+# Install dependencies
 npm install
 
 # Run frontend  
@@ -141,10 +135,10 @@ npm run dev
    - **Environment**: `Docker`
    - **Dockerfile Path**: `./Dockerfile`
 5. Add environment variables (same as `.env` but with production values):
+   - `DATABASE_URL`
    - `GROQ_API_KEY`
-   - `SUPABASE_URL`
-   - `SUPABASE_SERVICE_KEY`
-   - `SUPABASE_ANON_KEY`
+   - `JWT_SECRET_KEY`
+   - `JWT_EXPIRE_MINUTES`
    - `FRONTEND_URL` → your Vercel URL
 6. Deploy — note your Render backend URL
 
@@ -156,16 +150,14 @@ npm run dev
    - **Root Directory**: `frontend`
    - **Framework Preset**: Vite
 4. Add environment variables:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-   - `VITE_API_URL` → your Render backend URL + `/api`
+   - `VITE_API_URL` → your Render backend URL + `/api` (No trailing slash!)
 5. Deploy
 
 ---
 
 ## Features
 
-- ✅ **Authentication** — Email/password via Supabase Auth
+- ✅ **Authentication** — Custom JWT auth with bcrypt password hashing
 - ✅ **Multi-conversation** — Create, switch, and delete conversations
 - ✅ **Streaming responses** — Real-time SSE streaming from Groq
 - ✅ **Document upload** — PDF and TXT extraction for context
@@ -183,6 +175,9 @@ Base URL: `http://localhost:8000/api`
 | Method | Endpoint | Description |
 |---|---|---|
 | GET | `/health` | Health check |
+| POST | `/auth/register` | Register new user |
+| POST | `/auth/login` | Login user |
+| GET | `/auth/me` | Get current user |
 | POST | `/chat` | Send message, get response |
 | POST | `/chat/stream` | Send message, get SSE stream |
 | GET | `/conversations` | List conversations |
