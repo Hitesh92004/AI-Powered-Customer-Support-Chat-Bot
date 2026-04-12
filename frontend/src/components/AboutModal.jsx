@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Github, Linkedin, Mail, Code2, ExternalLink, Sparkles, User } from 'lucide-react';
+import { X, Terminal, Briefcase, Mail, Code2, ExternalLink, Sparkles, User } from 'lucide-react';
 
 const DEVELOPER = {
   name: 'Hitesh Priyadarshi',
@@ -76,7 +76,7 @@ export default function AboutModal() {
                 rel="noopener noreferrer"
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors text-sm"
               >
-                <Github size={16} />
+                <Terminal size={16} />
                 GitHub
                 <ExternalLink size={12} className="opacity-50" />
               </a>
@@ -86,10 +86,11 @@ export default function AboutModal() {
                 rel="noopener noreferrer"
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary transition-colors text-sm"
               >
-                <Linkedin size={16} />
+                <Briefcase size={16} />
                 LinkedIn
                 <ExternalLink size={12} className="opacity-50" />
               </a>
+
               <a
                 href={`mailto:${DEVELOPER.email}`}
                 className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors"
