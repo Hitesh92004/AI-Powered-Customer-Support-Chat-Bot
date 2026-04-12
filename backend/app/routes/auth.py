@@ -65,6 +65,25 @@ async def login(body: LoginRequest):
     )
 
 
+@router.post("/demo", response_model=AuthResponse)
+async def demo_login():
+    """Auto-login as a guest demo user. Creates the user if they don't exist."""
+    demo_email = "demo@example.com"
+    demo_password = "demo_password_123"
+    
+    user = await db.get_user_by_email(demo_email)
+    if not user:
+        password_hash = auth_service.hash_password(demo_password)
+        user = await db.create_user(demo_email, password_hash)
+        
+    token = auth_service.create_access_token(str(user["id"]), user["email"])
+    return AuthResponse(
+        access_token=token,
+        user_id=str(user["id"]),
+        email=user["email"],
+    )
+
+
 @router.get("/me")
 async def get_me(user_id: str = Depends(get_current_user)):
     """Get current authenticated user's info."""

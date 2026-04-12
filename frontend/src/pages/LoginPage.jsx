@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Loader2, Sparkles } from 'lucide-react';
+import { Mail, Lock, Loader2, Sparkles, UserCircle2 } from 'lucide-react';
+import { api } from '../lib/api';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,6 +13,27 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
+
+  const handleDemoSignIn = async () => {
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+    try {
+      // Direct call to demo endpoint without auth context since it manages its own token set
+      const res = await api.post('/auth/demo');
+      const { access_token, user_id, email } = res.data;
+      const userData = { id: user_id, email };
+      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      // Force reload to pick up context correctly since we bypassed AuthContext signIn method
+      window.location.href = '/';
+    } catch (err) {
+      const msg = err.response?.data?.detail || err.message || 'Demo sign in failed.';
+      setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,6 +87,22 @@ export default function LoginPage() {
             {success}
           </div>
         )}
+
+        {/* Demo Button */}
+        <button
+          onClick={handleDemoSignIn}
+          disabled={loading}
+          className="w-full btn-secondary flex justify-center items-center py-3 mb-6 gap-2 border-primary/30 hover:border-primary/60 text-primary-100 bg-primary/5"
+        >
+          <UserCircle2 size={20} className="text-primary" />
+          <span>Try Demo Account</span>
+        </button>
+
+        <div className="flex items-center py-4 mb-2">
+          <div className="flex-grow h-px bg-white/10"></div>
+          <span className="flex-shrink-0 px-4 text-gray-500 text-sm">or with email</span>
+          <div className="flex-grow h-px bg-white/10"></div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="relative">
