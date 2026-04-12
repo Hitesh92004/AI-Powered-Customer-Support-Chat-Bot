@@ -11,7 +11,7 @@ class Settings(BaseSettings):
 
     # Gemini API
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-1.5-flash"
+    GEMINI_MODEL: str = "gemini-1.5-flash-latest"
 
     # JWT Auth
     JWT_SECRET_KEY: str = "change-this-to-a-long-random-secret"
