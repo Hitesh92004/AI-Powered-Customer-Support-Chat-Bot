@@ -8,11 +8,16 @@ from fastapi.responses import StreamingResponse
 
 from app.middleware.auth import get_current_user
 from app.models.schemas import ChatRequest, ChatResponse
-from app.services import gemini_service as llm_svc
+from app.services import gemini_service, groq_service
 from app.services import db_service as db
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
+
+
+def _is_quota_error(error: RuntimeError) -> bool:
+    message = str(error).lower()
+    return "usage limits" in message or "quota" in message or "429" in message
 
 
 @router.post("", response_model=ChatResponse)
@@ -38,13 +43,24 @@ async def chat(request: ChatRequest, user_id: str = Depends(get_current_user)):
 
     # Get AI response
     try:
-        ai_response = await llm_svc.gemini_service.chat(
+        ai_response = await gemini_service.gemini_service.chat(
             user_message=request.message,
             history=history_dicts,
             document_context=request.document_context,
         )
     except RuntimeError as e:
-        raise HTTPException(status_code=503, detail=str(e))
+        if _is_quota_error(e):
+            logger.warning("Gemini quota hit in chat endpoint, falling back to Groq.")
+            try:
+                ai_response = await groq_service.groq_service.chat(
+                    user_message=request.message,
+                    history=history_dicts,
+                    document_context=request.document_context,
+                )
+            except RuntimeError as groq_error:
+                raise HTTPException(status_code=503, detail=str(groq_error))
+        else:
+            raise HTTPException(status_code=503, detail=str(e))
 
     # Save assistant message
     assistant_msg = await db.save_message(conversation_id, "assistant", ai_response)
@@ -78,7 +94,7 @@ async def chat_stream(request: ChatRequest, user_id: str = Depends(get_current_u
         full_response = ""
         yield f"data: {json.dumps({'type': 'meta', 'conversation_id': conversation_id})}\n\n"
         try:
-            async for chunk in llm_svc.gemini_service.stream_chat(
+            async for chunk in gemini_service.gemini_service.stream_chat(
                 user_message=request.message,
                 history=history_dicts,
                 document_context=request.document_context,
@@ -86,8 +102,22 @@ async def chat_stream(request: ChatRequest, user_id: str = Depends(get_current_u
                 full_response += chunk
                 yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
         except RuntimeError as e:
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
-            return
+            if not _is_quota_error(e):
+                yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+                return
+
+            logger.warning("Gemini quota hit in streaming endpoint, falling back to Groq.")
+            try:
+                async for chunk in groq_service.groq_service.stream_chat(
+                    user_message=request.message,
+                    history=history_dicts,
+                    document_context=request.document_context,
+                ):
+                    full_response += chunk
+                    yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
+            except RuntimeError as groq_error:
+                yield f"data: {json.dumps({'type': 'error', 'message': str(groq_error)})}\n\n"
+                return
 
         await db.save_message(conversation_id, "assistant", full_response)
         yield f"data: {json.dumps({'type': 'done', 'conversation_id': conversation_id})}\n\n"

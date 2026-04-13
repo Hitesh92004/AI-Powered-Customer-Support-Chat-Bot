@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Loader2, Send } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import ChatWindow from '../components/ChatWindow';
 import MessageInput from '../components/MessageInput';
 import DocumentUpload from '../components/DocumentUpload';
-import AboutModal from '../components/AboutModal';
 import { api, streamChat } from '../lib/api';
 
 export default function ChatPage() {
@@ -14,6 +14,7 @@ export default function ChatPage() {
   const [streamingContent, setStreamingContent] = useState('');
   const [showUpload, setShowUpload] = useState(false);
   const [documentContext, setDocumentContext] = useState(null);
+  const [draftMessage, setDraftMessage] = useState('');
 
   // Load conversations on mount
   const loadConversations = useCallback(async () => {
@@ -146,6 +147,7 @@ export default function ChatPage() {
           onSend={handleSend}
           onUpload={() => setShowUpload(true)}
           isLoading={isLoading}
+          onMessageChange={setDraftMessage}
         />
       </div>
 
@@ -153,12 +155,20 @@ export default function ChatPage() {
       <DocumentUpload
         isOpen={showUpload}
         onClose={() => setShowUpload(false)}
-        conversationId={currentConversationId}
+        conversationId={null}
         onDocumentUploaded={handleDocumentUploaded}
       />
 
-      {/* About Developer Floating Button */}
-      <AboutModal />
+      {/* Floating Send Button */}
+      <button
+        type="button"
+        title="Send Message"
+        disabled={!draftMessage.trim() || isLoading}
+        onClick={() => document.getElementById('chat-message-form')?.requestSubmit()}
+        className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary shadow-lg shadow-primary/30 flex items-center justify-center text-white hover:scale-110 transition-transform duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+      >
+        {isLoading ? <Loader2 size={22} className="animate-spin" /> : <Send size={22} />}
+      </button>
     </div>
   );
 }
