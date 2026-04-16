@@ -1,6 +1,27 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const normalizeApiBaseUrl = (rawUrl) => {
+  const fallback = 'http://localhost:8000/api';
+  if (!rawUrl) return fallback;
+
+  const trimmed = rawUrl.trim().replace(/\/+$/, '');
+  if (!trimmed) return fallback;
+
+  try {
+    const parsed = new URL(trimmed);
+    if (!parsed.pathname || parsed.pathname === '/') {
+      parsed.pathname = '/api';
+    } else if (!parsed.pathname.endsWith('/api')) {
+      parsed.pathname = `${parsed.pathname.replace(/\/+$/, '')}/api`;
+    }
+    return parsed.toString().replace(/\/+$/, '');
+  } catch {
+    // Handle non-absolute URLs gracefully
+    return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+  }
+};
+
+const API_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_URL);
 
 export const api = axios.create({ baseURL: API_URL });
 

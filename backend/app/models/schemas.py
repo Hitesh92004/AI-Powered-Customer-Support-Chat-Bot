@@ -68,6 +68,23 @@ class DocumentUploadResponse(BaseModel):
     message: str = "Document processed successfully"
 
 
+# ─── FAQ & Handoff Schemas ───────────────────────────────────────────────────
+
+class FAQTrainResponse(BaseModel):
+    source_filename: str
+    inserted: int
+    skipped: int
+    message: str
+
+
+class HandoffTicketResponse(BaseModel):
+    id: str
+    conversation_id: str
+    reason: str
+    status: str
+    created_at: datetime
+
+
 # ─── Health ───────────────────────────────────────────────────────────────────
 
 class HealthResponse(BaseModel):
