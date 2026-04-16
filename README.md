@@ -142,6 +142,9 @@ npm run dev
    - `FRONTEND_URL` → your Vercel URL
 6. Deploy — note your Render backend URL
 
+> If you deploy Render in native Python mode (not Docker), keep `backend/runtime.txt` so Render uses Python 3.11.
+> This avoids `pydantic-core` build failures that happen on unsupported bleeding-edge Python runtimes.
+
 ### Frontend → Vercel
 
 1. Go to [vercel.com](https://vercel.com) → **New Project**
