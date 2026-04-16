@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     # LLM Settings
     MAX_TOKENS: int = 2048
     TEMPERATURE: float = 0.7
+    FAQ_CONFIDENCE_THRESHOLD: float = 0.08
 
     # Upload Settings
     MAX_FILE_SIZE_MB: int = 10
