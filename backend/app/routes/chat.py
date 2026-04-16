@@ -8,6 +8,7 @@ from fastapi.responses import StreamingResponse
 
 from app.middleware.auth import get_current_user
 from app.models.schemas import ChatRequest, ChatResponse
+from app.config import settings
 from app.services import gemini_service, groq_service
 from app.services import db_service as db
 
@@ -18,6 +19,13 @@ router = APIRouter(prefix="/api/chat", tags=["Chat"])
 def _is_quota_error(error: RuntimeError) -> bool:
     message = str(error).lower()
     return "usage limits" in message or "quota" in message or "429" in message
+
+
+def _fallback_not_configured_message() -> str:
+    return (
+        "Gemini is currently rate limited and no Groq fallback is configured. "
+        "Set GROQ_API_KEY in backend/.env or switch to a paid Gemini key/model."
+    )
 
 
 @router.post("", response_model=ChatResponse)
@@ -51,6 +59,8 @@ async def chat(request: ChatRequest, user_id: str = Depends(get_current_user)):
     except RuntimeError as e:
         if _is_quota_error(e):
             logger.warning("Gemini quota hit in chat endpoint, falling back to Groq.")
+            if not settings.GROQ_API_KEY:
+                raise HTTPException(status_code=503, detail=_fallback_not_configured_message())
             try:
                 ai_response = await groq_service.groq_service.chat(
                     user_message=request.message,
@@ -107,6 +117,9 @@ async def chat_stream(request: ChatRequest, user_id: str = Depends(get_current_u
                 return
 
             logger.warning("Gemini quota hit in streaming endpoint, falling back to Groq.")
+            if not settings.GROQ_API_KEY:
+                yield f"data: {json.dumps({'type': 'error', 'message': _fallback_not_configured_message()})}\n\n"
+                return
             try:
                 async for chunk in groq_service.groq_service.stream_chat(
                     user_message=request.message,
