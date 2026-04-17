@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Upload, X, FileText, Loader2 } from 'lucide-react';
 import { api } from '../lib/api';
 
-export default function DocumentUpload({ isOpen, onClose, conversationId, onDocumentUploaded }) {
+export default function DocumentUpload({ isOpen, onClose, onFaqTrained }) {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
@@ -35,15 +35,14 @@ export default function DocumentUpload({ isOpen, onClose, conversationId, onDocu
     try {
       const formData = new FormData();
       formData.append('file', file);
-      if (conversationId) formData.append('conversation_id', conversationId);
 
-      const res = await api.post('/documents/upload', formData, {
+      const res = await api.post('/faq/train', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       setResult(res.data);
-      if (onDocumentUploaded) {
-        onDocumentUploaded(res.data);
+      if (onFaqTrained) {
+        onFaqTrained(res.data);
       }
     } catch (err) {
       setError(err.response?.data?.detail || 'Upload failed. Please try again.');
@@ -69,8 +68,8 @@ export default function DocumentUpload({ isOpen, onClose, conversationId, onDocu
           <X size={20} />
         </button>
 
-        <h2 className="text-xl font-bold text-white mb-1">Upload Document</h2>
-        <p className="text-gray-400 text-sm mb-6">Upload a PDF or TXT file to provide context for your conversation.</p>
+        <h2 className="text-xl font-bold text-white mb-1">Train FAQ Knowledge</h2>
+        <p className="text-gray-400 text-sm mb-6">Upload your company FAQ/Policy PDF or TXT (Q/A format) so replies are based on that knowledge base.</p>
 
         {error && (
           <div className="bg-red-500/10 text-red-400 border border-red-500/20 p-3 rounded-lg text-sm mb-4">
@@ -82,9 +81,9 @@ export default function DocumentUpload({ isOpen, onClose, conversationId, onDocu
           <div className="space-y-4">
             <div className="bg-green-500/10 text-green-400 border border-green-500/20 p-4 rounded-lg text-sm">
               <p className="font-medium mb-1">✓ Document processed!</p>
-              <p className="text-gray-400">{result.filename} — {result.char_count.toLocaleString()} characters extracted</p>
+              <p className="text-gray-400">{result.source_filename} — {result.inserted} FAQ entries added</p>
             </div>
-            <p className="text-gray-400 text-xs">{result.content_preview}</p>
+            <p className="text-gray-400 text-xs">{result.message}</p>
             <button onClick={handleClose} className="w-full btn-primary py-3">Done</button>
           </div>
         ) : (
@@ -111,7 +110,7 @@ export default function DocumentUpload({ isOpen, onClose, conversationId, onDocu
                 <div className="flex flex-col items-center gap-2">
                   <Upload className="text-gray-400" size={36} />
                   <p className="text-gray-300">Click to select a file</p>
-                  <p className="text-gray-500 text-xs">PDF or TXT, up to 10MB</p>
+                  <p className="text-gray-500 text-xs">PDF or TXT FAQ, up to 10MB</p>
                 </div>
               )}
             </div>
@@ -130,7 +129,7 @@ export default function DocumentUpload({ isOpen, onClose, conversationId, onDocu
               ) : (
                 <>
                   <Upload size={18} />
-                  Upload & Extract
+                  Upload & Train
                 </>
               )}
             </button>

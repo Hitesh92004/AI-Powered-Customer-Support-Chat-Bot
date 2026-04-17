@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     # Groq API (fallback / optional primary)
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    PRIMARY_LLM_PROVIDER: str = "groq"  # groq | gemini
 
     # JWT Auth
     JWT_SECRET_KEY: str = "change-this-to-a-long-random-secret"
@@ -36,6 +37,10 @@ class Settings(BaseSettings):
 
     # Upload Settings
     MAX_FILE_SIZE_MB: int = 10
+    ENABLE_USER_FILE_UPLOADS: bool = False
+
+    # FAQ dataset training (server-side)
+    FAQ_DATASET_PATH: str = "backend/data/faq_dataset.json"
 
     model_config = {
         "env_file": ".env",

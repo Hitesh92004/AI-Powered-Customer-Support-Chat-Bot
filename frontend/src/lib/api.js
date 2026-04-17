@@ -49,7 +49,7 @@ api.interceptors.response.use(
  * Stream a chat response via Server-Sent Events.
  */
 export const streamChat = async (
-  message, conversationId = null, documentContext = null,
+  message, conversationId = null,
   onChunk, onDone, onError
 ) => {
   try {
@@ -65,7 +65,6 @@ export const streamChat = async (
       body: JSON.stringify({
         message,
         conversation_id: conversationId,
-        document_context: documentContext,
       }),
     });
 

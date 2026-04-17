@@ -3,7 +3,6 @@ import { Loader2, Send } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import ChatWindow from '../components/ChatWindow';
 import MessageInput from '../components/MessageInput';
-import DocumentUpload from '../components/DocumentUpload';
 import { api, streamChat } from '../lib/api';
 
 export default function ChatPage() {
@@ -12,8 +11,6 @@ export default function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
-  const [showUpload, setShowUpload] = useState(false);
-  const [documentContext, setDocumentContext] = useState(null);
   const [draftMessage, setDraftMessage] = useState('');
 
   // Load conversations on mount
@@ -50,7 +47,6 @@ export default function ChatPage() {
   const handleNewChat = () => {
     setCurrentConversationId(null);
     setMessages([]);
-    setDocumentContext(null);
   };
 
   const handleSend = async (message) => {
@@ -64,7 +60,6 @@ export default function ChatPage() {
       await streamChat(
         message,
         currentConversationId,
-        documentContext,
         // onChunk
         (content, convId) => {
           if (convId && !currentConversationId) {
@@ -101,14 +96,6 @@ export default function ChatPage() {
     }
   };
 
-  const handleDocumentUploaded = (doc) => {
-    // Start a fresh conversation scoped to this document
-    setCurrentConversationId(null);
-    setMessages([]);
-    setDocumentContext(doc.content_preview || doc.extracted_text || null);
-    setShowUpload(false);
-  };
-
   return (
     <div className="flex h-screen bg-background">
       <Sidebar
@@ -128,11 +115,10 @@ export default function ChatPage() {
               : 'New Conversation'
             }
           </h2>
-          {documentContext && (
-            <span className="ml-3 text-xs text-primary bg-primary/10 px-2 py-1 rounded-full">
-              📄 Document attached
-            </span>
-          )}
+        </div>
+
+        <div className="mx-4 mt-3 rounded-lg border border-white/10 bg-surface/40 px-3 py-2 text-xs text-gray-300">
+          FAQ training is managed server-side using the configured dataset.
         </div>
 
         {/* Messages */}
@@ -145,19 +131,10 @@ export default function ChatPage() {
         {/* Input */}
         <MessageInput
           onSend={handleSend}
-          onUpload={() => setShowUpload(true)}
           isLoading={isLoading}
           onMessageChange={setDraftMessage}
         />
       </div>
-
-      {/* Upload Modal */}
-      <DocumentUpload
-        isOpen={showUpload}
-        onClose={() => setShowUpload(false)}
-        conversationId={null}
-        onDocumentUploaded={handleDocumentUploaded}
-      />
 
       {/* Floating Send Button */}
       <button

@@ -60,6 +60,7 @@ async def health_check():
         "status": "ok",
         "version": "1.0.0",
         "groq_configured": bool(settings.GROQ_API_KEY),
+        "primary_llm_provider": settings.PRIMARY_LLM_PROVIDER,
         "db_connected": bool(settings.DATABASE_URL),
     }
 

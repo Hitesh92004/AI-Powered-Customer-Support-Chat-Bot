@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Paperclip } from 'lucide-react';
 
-export default function MessageInput({ onSend, onUpload, isLoading, onMessageChange }) {
+export default function MessageInput({ onSend, isLoading, onMessageChange }) {
   const [message, setMessage] = useState('');
   const textareaRef = useRef(null);
 
@@ -38,17 +37,6 @@ export default function MessageInput({ onSend, onUpload, isLoading, onMessageCha
   return (
     <form id="chat-message-form" onSubmit={handleSubmit} className="glass-panel rounded-2xl p-3 mx-4 mb-4">
       <div className="flex items-end gap-2">
-        {/* Upload Button */}
-        <button
-          type="button"
-          onClick={onUpload}
-          disabled={isLoading}
-          className="flex-shrink-0 p-2.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
-          title="Upload Document"
-        >
-          <Paperclip size={20} />
-        </button>
-
         {/* Textarea */}
         <textarea
           ref={textareaRef}
