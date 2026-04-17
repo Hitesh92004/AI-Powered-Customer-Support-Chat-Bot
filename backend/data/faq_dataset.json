@@ -144,14 +144,14 @@
     "category": "human",
     "keywords": ["human", "agent", "real person", "talk to someone", "speak to", "customer care", "support team", "escalate"],
     "question": "I want to talk to a human agent.",
-    "answer": "Absolutely, I'll connect you to one of our support agents right away! Our human support team is available Monday–Saturday, 9 AM to 8 PM. You can also reach us at support@smartsupport.in or call us at 1800-XXX-XXXX (toll-free). Please hold on while I transfer your chat."
+    "answer": "Absolutely, I'll connect you to one of our support agents right away! Our human support team is available Monday-Saturday, 9 AM to 8 PM. You can also reach us at support@smartsupport.in or call us at 1800-XXX-XXXX (toll-free). Please hold on while I transfer your chat."
   },
   {
     "id": "faq_022",
     "category": "orders",
     "keywords": ["invoice", "bill", "receipt", "gst", "tax invoice"],
     "question": "How do I get an invoice for my order?",
-    "answer": "Your invoice is automatically emailed to you after delivery. You can also download it anytime from 'My Orders' → Select the order → 'Download Invoice'. GST invoices are available for all orders and include the breakdown of taxes paid."
+    "answer": "Your invoice is automatically emailed to you after delivery. You can also download it anytime from 'My Orders' -> Select the order -> 'Download Invoice'. GST invoices are available for all orders and include the breakdown of taxes paid."
   },
   {
     "id": "faq_023",
@@ -165,7 +165,7 @@
     "category": "account",
     "keywords": ["address", "change address", "new address", "add address", "delivery address"],
     "question": "How do I change my delivery address?",
-    "answer": "You can add or update your delivery address in Account → Saved Addresses. For an order already placed, address changes are only possible if the order hasn't been dispatched yet. Share your Order ID and the new address, and I'll try to update it for you right away."
+    "answer": "You can add or update your delivery address in Account -> Saved Addresses. For an order already placed, address changes are only possible if the order hasn't been dispatched yet. Share your Order ID and the new address, and I'll try to update it for you right away."
   },
   {
     "id": "faq_025",
