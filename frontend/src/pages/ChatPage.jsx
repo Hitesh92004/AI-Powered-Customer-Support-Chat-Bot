@@ -126,6 +126,7 @@ export default function ChatPage() {
           messages={messages}
           isLoading={isLoading}
           streamingContent={streamingContent}
+          onSuggestionClick={handleSend}
         />
 
         {/* Input */}
