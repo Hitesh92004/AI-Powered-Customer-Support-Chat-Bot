@@ -199,3 +199,101 @@ async def get_documents_for_conversation(conversation_id: str) -> List[Dict]:
             conversation_id
         )
         return _rows_to_dicts(rows)
+
+
+# ─── FAQ Operations ───────────────────────────────────────────────────────────
+
+async def save_faq_entry(
+    user_id: str,
+    question: str,
+    answer: str,
+    source_document: Optional[str] = None,
+) -> Dict:
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            """INSERT INTO faq_entries (user_id, question, answer, source_document)
+               VALUES ($1, $2, $3, $4)
+               RETURNING id, user_id, question, answer, source_document, created_at""",
+            user_id, question, answer, source_document
+        )
+        return _row_to_dict(row)
+
+
+async def get_faq_entries_count(user_id: str) -> int:
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        return int(
+            await conn.fetchval(
+                "SELECT COUNT(*) FROM faq_entries WHERE user_id = $1",
+                user_id,
+            )
+            or 0
+        )
+
+
+async def faq_entry_exists(user_id: str, question: str) -> bool:
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        exists = await conn.fetchval(
+            """
+            SELECT EXISTS(
+                SELECT 1 FROM faq_entries
+                WHERE user_id = $1
+                  AND LOWER(question) = LOWER($2)
+            )
+            """,
+            user_id,
+            question,
+        )
+        return bool(exists)
+
+
+async def search_faq_entries(user_id: str, query: str, limit: int = 3) -> List[Dict]:
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            WITH q AS (
+                SELECT websearch_to_tsquery('english', $2) AS tsq
+            )
+            SELECT f.id, f.question, f.answer, f.source_document,
+                   GREATEST(
+                      ts_rank(f.search_vector, q.tsq),
+                      CASE WHEN f.question ILIKE '%' || $2 || '%' THEN 0.20 ELSE 0 END
+                      + CASE WHEN f.answer ILIKE '%' || $2 || '%' THEN 0.10 ELSE 0 END
+                   ) AS score
+            FROM faq_entries f
+            CROSS JOIN q
+            WHERE f.user_id = $1
+              AND (
+                   f.search_vector @@ q.tsq
+                   OR f.question ILIKE '%' || $2 || '%'
+                   OR f.answer ILIKE '%' || $2 || '%'
+              )
+            ORDER BY score DESC, f.updated_at DESC
+            LIMIT $3
+            """,
+            user_id, query, limit
+        )
+        return _rows_to_dicts(rows)
+
+
+# ─── Handoff Operations ───────────────────────────────────────────────────────
+
+async def create_handoff_ticket(
+    user_id: str,
+    conversation_id: str,
+    user_message: str,
+    reason: str,
+    status: str = "open",
+) -> Dict:
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            """INSERT INTO handoff_tickets (user_id, conversation_id, user_message, reason, status)
+               VALUES ($1, $2, $3, $4, $5)
+               RETURNING id, user_id, conversation_id, user_message, reason, status, created_at, resolved_at""",
+            user_id, conversation_id, user_message, reason, status
+        )
+        return _row_to_dict(row)
