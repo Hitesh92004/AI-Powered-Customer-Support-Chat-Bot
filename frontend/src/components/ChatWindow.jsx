@@ -1,8 +1,8 @@
 import React, { useRef, useEffect } from 'react';
 import MessageBubble from './MessageBubble';
-import { Bot, Loader2, Sparkles } from 'lucide-react';
+import { Bot, Sparkles } from 'lucide-react';
 
-export default function ChatWindow({ messages, isLoading, streamingContent }) {
+export default function ChatWindow({ messages, isLoading, streamingContent, onSuggestionClick }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -29,6 +29,9 @@ export default function ChatWindow({ messages, isLoading, streamingContent }) {
           ].map((prompt, i) => (
             <button
               key={i}
+              type="button"
+              onClick={() => onSuggestionClick?.(prompt)}
+              disabled={isLoading}
               className="text-left text-sm text-gray-300 bg-surface hover:bg-white/10 border border-white/10 p-4 rounded-xl transition-colors"
             >
               {prompt}
