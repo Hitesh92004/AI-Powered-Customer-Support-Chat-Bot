@@ -13,6 +13,11 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-1.5-flash-latest"
 
+    # Groq API (fallback / optional primary)
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    PRIMARY_LLM_PROVIDER: str = "groq"  # groq | gemini
+
     # JWT Auth
     JWT_SECRET_KEY: str = "change-this-to-a-long-random-secret"
     JWT_ALGORITHM: str = "HS256"
@@ -28,9 +33,14 @@ class Settings(BaseSettings):
     # LLM Settings
     MAX_TOKENS: int = 2048
     TEMPERATURE: float = 0.7
+    FAQ_CONFIDENCE_THRESHOLD: float = 0.08
 
     # Upload Settings
     MAX_FILE_SIZE_MB: int = 10
+    ENABLE_USER_FILE_UPLOADS: bool = False
+
+    # FAQ dataset training (server-side)
+    FAQ_DATASET_PATH: str = "backend/data/faq_dataset.json"
 
     model_config = {
         "env_file": ".env",

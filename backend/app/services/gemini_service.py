@@ -63,6 +63,22 @@ class GeminiService:
                 gemini_history.append({"role": "model", "parts": [msg["content"]]})
         return gemini_history
 
+    def _normalize_error_message(self, error: Exception, streaming: bool = False) -> str:
+        """
+        Convert provider-specific exceptions into concise user-safe messages.
+        """
+        raw_error = str(error)
+        lowered = raw_error.lower()
+
+        if "quota" in lowered or "429" in lowered or "resource_exhausted" in lowered:
+            return (
+                "The AI service is temporarily unavailable due to API usage limits. "
+                "Please try again in a minute."
+            )
+
+        prefix = "LLM streaming error" if streaming else "LLM service error"
+        return f"{prefix}: {raw_error}"
+
     async def chat(
         self,
         user_message: str,
@@ -83,7 +99,7 @@ class GeminiService:
             return await asyncio.to_thread(_sync_call)
         except Exception as e:
             logger.error(f"Gemini API error: {e}")
-            raise RuntimeError(f"LLM service error: {str(e)}")
+            raise RuntimeError(self._normalize_error_message(e))
 
     async def stream_chat(
         self,
@@ -119,7 +135,7 @@ class GeminiService:
                 break
             if isinstance(item, Exception):
                 logger.error(f"Gemini streaming error: {item}")
-                raise RuntimeError(f"LLM streaming error: {str(item)}")
+                raise RuntimeError(self._normalize_error_message(item, streaming=True))
             yield item
 
 
