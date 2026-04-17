@@ -75,8 +75,12 @@ async def train_faq_from_dataset(user_id: str = Depends(get_current_user)):
         raise HTTPException(status_code=422, detail="No valid FAQ entries found in dataset.")
 
     inserted = 0
+    skipped = 0
     source_name = Path(dataset_path).name
     for entry in entries:
+        if await db.faq_entry_exists(user_id=user_id, question=entry["question"]):
+            skipped += 1
+            continue
         await db.save_faq_entry(
             user_id=user_id,
             question=entry["question"],
@@ -88,6 +92,6 @@ async def train_faq_from_dataset(user_id: str = Depends(get_current_user)):
     return FAQTrainResponse(
         source_filename=source_name,
         inserted=inserted,
-        skipped=max(0, len(entries) - inserted),
+        skipped=skipped,
         message="FAQ dataset trained successfully.",
     )

@@ -10,6 +10,7 @@ from app.middleware.auth import get_current_user
 from app.models.schemas import ChatRequest, ChatResponse
 from app.config import settings
 from app.services import gemini_service, groq_service
+from app.services.faq_service import load_faq_entries_from_dataset
 from app.services import db_service as db
 
 logger = logging.getLogger(__name__)
@@ -30,6 +31,38 @@ def _build_faq_context(faq_matches: list[dict]) -> str:
     for idx, item in enumerate(faq_matches, start=1):
         parts.append(f"FAQ #{idx}\nQ: {item['question']}\nA: {item['answer']}")
     return "\n\n".join(parts)
+
+
+async def _ensure_user_faq_seeded(user_id: str) -> None:
+    """
+    Ensure user has at least one FAQ entry. If not, seed from server dataset.
+    This helps deployments work immediately after boot without manual train call.
+    """
+    count = await db.get_faq_entries_count(user_id)
+    if count > 0:
+        return
+
+    try:
+        entries = load_faq_entries_from_dataset(settings.FAQ_DATASET_PATH)
+    except Exception as e:
+        logger.warning("FAQ auto-seed skipped for user %s: %s", user_id, e)
+        return
+
+    source_name = settings.FAQ_DATASET_PATH.split("/")[-1]
+    inserted = 0
+    for entry in entries:
+        if await db.faq_entry_exists(user_id=user_id, question=entry["question"]):
+            continue
+        await db.save_faq_entry(
+            user_id=user_id,
+            question=entry["question"],
+            answer=entry["answer"],
+            source_document=source_name,
+        )
+        inserted += 1
+
+    if inserted:
+        logger.info("Auto-seeded %s FAQ entries for user %s", inserted, user_id)
 
 
 @router.post("", response_model=ChatResponse)
@@ -53,6 +86,7 @@ async def chat(request: ChatRequest, user_id: str = Depends(get_current_user)):
     # Save user message
     user_msg = await db.save_message(conversation_id, "user", request.message)
 
+    await _ensure_user_faq_seeded(user_id)
     faq_matches = await db.search_faq_entries(user_id, request.message, limit=3)
     composed_context = None
     if faq_matches:
@@ -145,6 +179,7 @@ async def chat_stream(request: ChatRequest, user_id: str = Depends(get_current_u
     history = await db.get_messages(conversation_id)
     history_dicts = [{"role": m["role"], "content": m["content"]} for m in history]
     await db.save_message(conversation_id, "user", request.message)
+    await _ensure_user_faq_seeded(user_id)
     faq_matches = await db.search_faq_entries(user_id, request.message, limit=3)
     composed_context = None
     if faq_matches:
