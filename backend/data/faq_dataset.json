@@ -1,14 +1,177 @@
 [
   {
-    "question": "What is your return policy?",
-    "answer": "Returns are accepted within 14 days of delivery for unused products in original packaging."
+    "id": "faq_001",
+    "category": "orders",
+    "keywords": ["order", "track", "status", "where", "my order", "delivery", "shipped"],
+    "question": "How do I track my order?",
+    "answer": "You can track your order by providing your Order ID. Just type 'track order #XXXX' and I'll fetch the latest status for you instantly. You can also visit the Orders section in your account dashboard for real-time updates."
   },
   {
-    "question": "How long does shipping take?",
-    "answer": "Standard shipping takes 3 to 7 business days depending on destination."
+    "id": "faq_002",
+    "category": "orders",
+    "keywords": ["cancel", "cancellation", "cancel order", "stop order"],
+    "question": "Can I cancel my order?",
+    "answer": "Yes! Orders can be cancelled within 24 hours of placement, as long as they haven't been shipped yet. If your order is already shipped, you'll need to initiate a return after delivery. To cancel, share your Order ID and I'll check the eligibility right away."
   },
   {
-    "question": "How can I contact support?",
-    "answer": "You can contact support by email at support@example.com or through the in-app chat."
+    "id": "faq_003",
+    "category": "orders",
+    "keywords": ["modify", "change", "update order", "edit order", "change address"],
+    "question": "Can I modify my order after placing it?",
+    "answer": "Order modifications (like changing size, color, or delivery address) are possible only within 1 hour of placing the order. After that, the order is locked for processing. Please share your Order ID and what you'd like to change, and I'll check if it's still possible."
+  },
+  {
+    "id": "faq_004",
+    "category": "shipping",
+    "keywords": ["shipping", "delivery time", "how long", "when will", "arrive", "dispatch"],
+    "question": "How long does delivery take?",
+    "answer": "Delivery timelines depend on your location: Standard delivery takes 5–7 business days, Express delivery takes 2–3 business days, and Same-day delivery is available in select metro cities if ordered before 12 PM. You'll receive a tracking link via SMS and email once your order is dispatched."
+  },
+  {
+    "id": "faq_005",
+    "category": "shipping",
+    "keywords": ["free shipping", "shipping charges", "delivery fee", "shipping cost"],
+    "question": "Is shipping free?",
+    "answer": "Free shipping is available on all orders above ₹499. For orders below ₹499, a flat delivery fee of ₹49 is charged. Express and same-day delivery options have separate charges displayed at checkout."
+  },
+  {
+    "id": "faq_006",
+    "category": "shipping",
+    "keywords": ["international", "abroad", "outside india", "overseas", "ship internationally"],
+    "question": "Do you ship internationally?",
+    "answer": "Currently, we ship only within India. We're working on expanding to international shipping soon. If you're outside India, we recommend using a package forwarding service. Stay tuned for updates!"
+  },
+  {
+    "id": "faq_007",
+    "category": "returns",
+    "keywords": ["return", "send back", "return policy", "return request", "how to return"],
+    "question": "How do I return a product?",
+    "answer": "Returns are accepted within 7 days of delivery for most products. Here's how: (1) Go to 'My Orders' in your account, (2) Select the item you want to return, (3) Choose a return reason, (4) Schedule a free pickup. Once we receive and inspect the item, your refund will be processed within 5–7 business days."
+  },
+  {
+    "id": "faq_008",
+    "category": "returns",
+    "keywords": ["refund", "money back", "when refund", "refund status", "refund time"],
+    "question": "When will I get my refund?",
+    "answer": "Refunds are typically processed within 5–7 business days after we receive and inspect the returned item. The amount is credited back to your original payment method. UPI and wallet refunds are usually faster (1–3 days), while bank transfers may take up to 7 days."
+  },
+  {
+    "id": "faq_009",
+    "category": "returns",
+    "keywords": ["exchange", "replace", "swap", "wrong size", "wrong item"],
+    "question": "Can I exchange a product?",
+    "answer": "Yes! Exchanges are available within 7 days of delivery. You can exchange for a different size or color of the same product, subject to availability. Exchanges are free of charge. Just raise a request from 'My Orders' or let me know your Order ID and what you'd like to exchange."
+  },
+  {
+    "id": "faq_010",
+    "category": "returns",
+    "keywords": ["damaged", "broken", "defective", "wrong product", "not working", "faulty"],
+    "question": "I received a damaged or wrong product. What should I do?",
+    "answer": "We're really sorry about that! Please raise a complaint within 48 hours of delivery with photos of the damaged/wrong item. We'll arrange an immediate pickup and send a replacement or process a full refund — whichever you prefer. Share your Order ID and a photo, and I'll escalate this right away."
+  },
+  {
+    "id": "faq_011",
+    "category": "payments",
+    "keywords": ["payment", "pay", "how to pay", "payment methods", "upi", "card", "cod"],
+    "question": "What payment methods do you accept?",
+    "answer": "We accept all major payment methods: UPI (GPay, PhonePe, Paytm), Credit & Debit cards (Visa, Mastercard, RuPay), Net Banking, EMI (on orders above ₹3,000), and Cash on Delivery (COD) for orders below ₹10,000."
+  },
+  {
+    "id": "faq_012",
+    "category": "payments",
+    "keywords": ["payment failed", "transaction failed", "money deducted", "charged twice", "double charge"],
+    "question": "My payment failed but money was deducted. What should I do?",
+    "answer": "Don't worry — this happens sometimes due to network issues. If money was deducted but the order wasn't placed, the amount will be automatically refunded to your account within 3–5 business days. If it's not reflected after 5 days, please share your transaction ID or screenshot and I'll escalate it to our payments team immediately."
+  },
+  {
+    "id": "faq_013",
+    "category": "payments",
+    "keywords": ["emi", "installment", "pay later", "no cost emi"],
+    "question": "Is EMI available?",
+    "answer": "Yes! No-cost EMI is available on orders above ₹3,000 using select credit cards (HDFC, ICICI, Axis, SBI). You can also use Buy Now Pay Later (BNPL) options like LazyPay and Simpl on eligible orders. EMI options are displayed at the checkout page."
+  },
+  {
+    "id": "faq_014",
+    "category": "account",
+    "keywords": ["account", "login", "sign in", "cant login", "forgot password", "reset password"],
+    "question": "I forgot my password. How do I reset it?",
+    "answer": "No worries! Click on 'Forgot Password' on the login page, enter your registered email or phone number, and you'll receive a reset link/OTP within 2 minutes. If you don't receive it, check your spam folder or try with your alternate email/phone."
+  },
+  {
+    "id": "faq_015",
+    "category": "account",
+    "keywords": ["delete account", "close account", "remove account", "deactivate"],
+    "question": "How do I delete my account?",
+    "answer": "You can request account deletion by going to Settings > Privacy > Delete Account. Please note that deleting your account is permanent and will remove all your order history, saved addresses, and wishlist. If you have any pending orders or active returns, please resolve those first."
+  },
+  {
+    "id": "faq_016",
+    "category": "offers",
+    "keywords": ["coupon", "promo code", "discount", "offer", "voucher", "cashback"],
+    "question": "How do I apply a coupon code?",
+    "answer": "On the checkout page, you'll see a 'Apply Coupon' field. Enter your coupon code there and click Apply. The discount will be reflected immediately in your order total. Make sure the coupon is valid for the items in your cart and hasn't expired."
+  },
+  {
+    "id": "faq_017",
+    "category": "offers",
+    "keywords": ["coupon not working", "code invalid", "promo not applying", "discount not applied"],
+    "question": "My coupon code is not working. What should I do?",
+    "answer": "Here are a few reasons a coupon might not work: it may have expired, it may not apply to items in your cart, there may be a minimum order requirement, or it may be a first-time user coupon and you've shopped before. Double-check the terms or share the coupon code with me and I'll verify it for you."
+  },
+  {
+    "id": "faq_018",
+    "category": "offers",
+    "keywords": ["sale", "discount", "offer today", "best price", "deals"],
+    "question": "Are there any ongoing sales or discounts?",
+    "answer": "We run regular sales and special promotions throughout the year. You can check our 'Offers' page on the website or app for current deals. You can also subscribe to our newsletter or enable notifications to get early access to sales and exclusive discount codes."
+  },
+  {
+    "id": "faq_019",
+    "category": "product",
+    "keywords": ["product", "item", "in stock", "available", "out of stock", "stock"],
+    "question": "How do I know if a product is in stock?",
+    "answer": "Product availability is shown in real-time on the product page. If a product is out of stock, you'll see an 'Out of Stock' label and a 'Notify Me' button — click it and we'll alert you as soon as it's back. Stock updates happen multiple times daily."
+  },
+  {
+    "id": "faq_020",
+    "category": "product",
+    "keywords": ["size guide", "size chart", "measurement", "which size", "fit"],
+    "question": "How do I find the right size?",
+    "answer": "Every product page has a 'Size Guide' link that shows detailed measurements. We recommend measuring your chest, waist, and hips and comparing with the size chart. If you're between sizes, we generally recommend sizing up. You can also check reviews where customers often mention how items fit."
+  },
+  {
+    "id": "faq_021",
+    "category": "human",
+    "keywords": ["human", "agent", "real person", "talk to someone", "speak to", "customer care", "support team", "escalate"],
+    "question": "I want to talk to a human agent.",
+    "answer": "Absolutely, I'll connect you to one of our support agents right away! Our human support team is available Monday–Saturday, 9 AM to 8 PM. You can also reach us at support@smartsupport.in or call us at 1800-XXX-XXXX (toll-free). Please hold on while I transfer your chat."
+  },
+  {
+    "id": "faq_022",
+    "category": "orders",
+    "keywords": ["invoice", "bill", "receipt", "gst", "tax invoice"],
+    "question": "How do I get an invoice for my order?",
+    "answer": "Your invoice is automatically emailed to you after delivery. You can also download it anytime from 'My Orders' → Select the order → 'Download Invoice'. GST invoices are available for all orders and include the breakdown of taxes paid."
+  },
+  {
+    "id": "faq_023",
+    "category": "shipping",
+    "keywords": ["not delivered", "missing", "lost", "not received", "delivery pending"],
+    "question": "My order hasn't been delivered but shows as delivered.",
+    "answer": "I'm sorry to hear that! This sometimes happens if the delivery was left with a neighbor, security desk, or at the door. Please check nearby. If you still can't find it, share your Order ID and I'll immediately raise a complaint with our delivery partner and ensure you get your item or a full refund within 48 hours."
+  },
+  {
+    "id": "faq_024",
+    "category": "account",
+    "keywords": ["address", "change address", "new address", "add address", "delivery address"],
+    "question": "How do I change my delivery address?",
+    "answer": "You can add or update your delivery address in Account → Saved Addresses. For an order already placed, address changes are only possible if the order hasn't been dispatched yet. Share your Order ID and the new address, and I'll try to update it for you right away."
+  },
+  {
+    "id": "faq_025",
+    "category": "orders",
+    "keywords": ["order history", "past orders", "previous orders", "all orders"],
+    "question": "Where can I see my past orders?",
+    "answer": "All your past and current orders are listed under 'My Orders' in your account. You can filter by date, status, or order ID. Each order shows the status, tracking info, invoice, and options to return or rate the product."
   }
 ]
