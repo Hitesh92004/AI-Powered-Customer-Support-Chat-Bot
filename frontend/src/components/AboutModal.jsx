@@ -11,8 +11,9 @@ const DEVELOPER = {
   tech: ['React + Vite', 'FastAPI', 'Google Gemini AI', 'Neon PostgreSQL', 'JWT Auth', 'Render + Vercel'],
 };
 
-export default function AboutModal() {
+export default function AboutModal({ triggerClassName = '' }) {
   const [isOpen, setIsOpen] = useState(false);
+  const defaultTriggerClassName = "fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary shadow-lg shadow-primary/30 flex items-center justify-center text-white hover:scale-110 transition-transform duration-200";
 
   return (
     <>
@@ -20,7 +21,7 @@ export default function AboutModal() {
       <button
         onClick={() => setIsOpen(true)}
         title="About Developer"
-        className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary shadow-lg shadow-primary/30 flex items-center justify-center text-white hover:scale-110 transition-transform duration-200"
+        className={triggerClassName || defaultTriggerClassName}
       >
         <User size={22} />
       </button>
