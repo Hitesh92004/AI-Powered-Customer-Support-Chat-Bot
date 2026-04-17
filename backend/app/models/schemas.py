@@ -11,7 +11,6 @@ from datetime import datetime
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=10000)
     conversation_id: Optional[str] = None
-    document_context: Optional[str] = None
 
 
 class ChatResponse(BaseModel):
@@ -66,6 +65,23 @@ class DocumentUploadResponse(BaseModel):
     char_count: int
     conversation_id: Optional[str] = None
     message: str = "Document processed successfully"
+
+
+# ─── FAQ & Handoff Schemas ───────────────────────────────────────────────────
+
+class FAQTrainResponse(BaseModel):
+    source_filename: str
+    inserted: int
+    skipped: int
+    message: str
+
+
+class HandoffTicketResponse(BaseModel):
+    id: str
+    conversation_id: str
+    reason: str
+    status: str
+    created_at: datetime
 
 
 # ─── Health ───────────────────────────────────────────────────────────────────
