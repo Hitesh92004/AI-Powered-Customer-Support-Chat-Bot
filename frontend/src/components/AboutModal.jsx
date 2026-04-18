@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Terminal, Briefcase, Mail, Code2, ExternalLink, Sparkles, User } from 'lucide-react';
 
 const DEVELOPER = {
@@ -27,9 +28,9 @@ export default function AboutModal({ triggerClassName = '' }) {
       </button>
 
       {/* Modal */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
-          <div className="glass-panel rounded-2xl p-6 w-full max-w-md relative animate-fade-in">
+      {isOpen && createPortal(
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+          <div className="glass-panel rounded-2xl p-6 w-full max-w-md relative animate-fade-in shadow-2xl shadow-primary/20">
             {/* Close */}
             <button
               onClick={() => setIsOpen(false)}
@@ -101,7 +102,8 @@ export default function AboutModal({ triggerClassName = '' }) {
               </a>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

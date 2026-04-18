@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Server, Database, Code2, BrainCircuit, Activity, Layers, ArrowRight } from 'lucide-react';
 
 export default function ArchitectureModal({ triggerClassName = '' }) {
@@ -16,8 +17,8 @@ export default function ArchitectureModal({ triggerClassName = '' }) {
         <span className="hidden sm:inline">Architecture Explorer</span>
       </button>
 
-      {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      {isOpen && createPortal(
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="glass-panel rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative animate-fade-in custom-scrollbar">
             
             {/* Header Fix for scrolling */}
@@ -119,7 +120,8 @@ export default function ArchitectureModal({ triggerClassName = '' }) {
 
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
