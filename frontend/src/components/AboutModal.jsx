@@ -4,11 +4,11 @@ import { X, Terminal, Briefcase, Mail, Code2, ExternalLink, Sparkles, User } fro
 const DEVELOPER = {
   name: 'Hitesh Priyadarshi',
   role: 'Full-Stack Developer',
-  bio: 'B.Tech student passionate about building AI-powered web applications. This project demonstrates a production-ready chatbot with Google Gemini AI, FastAPI, React, and Neon PostgreSQL.',
+  bio: 'B.Tech student passionate about building AI-powered web applications. This project demonstrates a production-ready chatbot with Groq (Llama 3), FastAPI, React, and Neon PostgreSQL (pgvector).',
   github: 'https://github.com/Hitesh92004',
   linkedin: 'https://linkedin.com/in/hiteshpriyadarshi',
   email: 'hiteshpriyadarshis@gmail.com',
-  tech: ['React + Vite', 'FastAPI', 'Google Gemini AI', 'Neon PostgreSQL', 'JWT Auth', 'Render + Vercel'],
+  tech: ['React + Vite', 'FastAPI', 'Groq (Llama 3)', 'Neon PostgreSQL', 'Scikit-Learn', 'JWT Auth'],
 };
 
 export default function AboutModal({ triggerClassName = '' }) {

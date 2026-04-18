@@ -22,10 +22,10 @@ export default function ChatWindow({ messages, isLoading, streamingContent, onSu
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8 w-full max-w-lg">
           {[
-            'How do I reset my password?',
-            'What are your pricing plans?',
-            'I need help with my order',
-            'Tell me about your features',
+            'What payment methods do you accept?',
+            'What is your return policy?',
+            'How can I track my order?',
+            'Tell me about your EMI options',
           ].map((prompt, i) => (
             <button
               key={i}

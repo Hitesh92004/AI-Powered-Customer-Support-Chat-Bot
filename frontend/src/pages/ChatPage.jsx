@@ -3,6 +3,7 @@ import { Loader2, Send } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import ChatWindow from '../components/ChatWindow';
 import MessageInput from '../components/MessageInput';
+import ArchitectureModal from '../components/ArchitectureModal';
 import { api, streamChat } from '../lib/api';
 
 export default function ChatPage() {
@@ -108,17 +109,18 @@ export default function ChatPage() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <div className="h-14 flex items-center px-6 md:px-8 border-b border-white/10 bg-surface/50 backdrop-blur-sm">
-          <h2 className="text-sm font-semibold text-gray-300 truncate ml-10 md:ml-0">
-            {currentConversationId
-              ? conversations.find(c => c.id === currentConversationId)?.title || 'Chat'
-              : 'New Conversation'
-            }
-          </h2>
-        </div>
-
-        <div className="mx-4 mt-3 rounded-lg border border-white/10 bg-surface/40 px-3 py-2 text-xs text-gray-300">
-          FAQ training is managed server-side using the configured dataset.
+        <div className="h-14 flex items-center justify-between px-6 md:px-8 border-b border-white/10 bg-surface/80 backdrop-blur-md shadow-sm z-10">
+          <div className="flex items-center gap-3">
+            <h2 className="text-sm font-bold text-gray-200 truncate ml-10 md:ml-0 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+              {currentConversationId
+                ? conversations.find(c => c.id === currentConversationId)?.title || 'Chat'
+                : 'New Conversation'
+              }
+            </h2>
+          </div>
+          
+          <ArchitectureModal />
         </div>
 
         {/* Messages */}
