@@ -24,7 +24,8 @@ export default function AboutModal({ triggerClassName = '' }) {
         title="About Developer"
         className={triggerClassName || defaultTriggerClassName}
       >
-        <User size={22} />
+        <User size={18} />
+        <span className="hidden sm:inline">About Developer</span>
       </button>
 
       {/* Modal */}

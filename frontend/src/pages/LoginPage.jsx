@@ -3,6 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Loader2, Sparkles, UserCircle2 } from 'lucide-react';
 import { api } from '../lib/api';
+import AboutModal from '../components/AboutModal';
+import ArchitectureModal from '../components/ArchitectureModal';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -140,6 +142,12 @@ export default function LoginPage() {
             {isLogin ? 'Sign up' : 'Sign in'}
           </button>
         </div>
+      </div>
+
+      {/* External Presentation Links */}
+      <div className="absolute bottom-8 flex flex-col sm:flex-row items-center gap-4 z-20">
+        <ArchitectureModal triggerClassName="px-4 py-2 text-sm font-medium bg-surface/80 backdrop-blur-md text-white border border-white/10 shadow-lg rounded-xl flex items-center gap-2 transition-all hover:scale-105 hover:bg-white/10" />
+        <AboutModal triggerClassName="px-4 py-2 text-sm font-medium bg-surface/80 backdrop-blur-md text-white border border-white/10 shadow-lg rounded-xl flex items-center gap-2 transition-all hover:scale-105 hover:bg-white/10 text-center" />
       </div>
     </div>
   );
