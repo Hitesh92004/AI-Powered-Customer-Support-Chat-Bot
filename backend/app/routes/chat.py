@@ -110,6 +110,18 @@ async def chat(request: ChatRequest, user_id: str = Depends(get_current_user)):
                 assistant_message_id=str(assistant_msg["id"]),
             )
 
+        # Deterministic FAQ mode: reply directly from highest-ranked FAQ answer
+        # so responses stay aligned with the trained dataset.
+        top_answer = (faq_matches[0].get("answer") or "").strip()
+        if top_answer:
+            assistant_msg = await db.save_message(conversation_id, "assistant", top_answer)
+            return ChatResponse(
+                response=top_answer,
+                conversation_id=conversation_id,
+                user_message_id=str(user_msg["id"]),
+                assistant_message_id=str(assistant_msg["id"]),
+            )
+
         faq_context = _build_faq_context(faq_matches)
         composed_context = f"--- FAQ Matches ---\n{faq_context}"
 
@@ -204,6 +216,12 @@ async def chat_stream(request: ChatRequest, user_id: str = Depends(get_current_u
                 )
                 await db.save_message(conversation_id, "assistant", handoff_message)
                 yield f"data: {json.dumps({'type': 'chunk', 'content': handoff_message})}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'conversation_id': conversation_id})}\n\n"
+                return
+            top_answer = (faq_matches[0].get("answer") or "").strip()
+            if top_answer:
+                await db.save_message(conversation_id, "assistant", top_answer)
+                yield f"data: {json.dumps({'type': 'chunk', 'content': top_answer})}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'conversation_id': conversation_id})}\n\n"
                 return
         provider = _primary_provider()
