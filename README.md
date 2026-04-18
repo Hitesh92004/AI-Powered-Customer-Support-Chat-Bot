@@ -142,6 +142,9 @@ npm run dev
    - `FRONTEND_URL` → your Vercel URL
 6. Deploy — note your Render backend URL
 
+> If you deploy Render in native Python mode (not Docker), keep `backend/runtime.txt` so Render uses Python 3.11.
+> This avoids `pydantic-core` build failures that happen on unsupported bleeding-edge Python runtimes.
+
 ### Frontend → Vercel
 
 1. Go to [vercel.com](https://vercel.com) → **New Project**
@@ -160,7 +163,7 @@ npm run dev
 - ✅ **Authentication** — Custom JWT auth with bcrypt password hashing
 - ✅ **Multi-conversation** — Create, switch, and delete conversations
 - ✅ **Streaming responses** — Real-time SSE streaming from Groq
-- ✅ **Document upload** — PDF and TXT extraction for context
+- ✅ **FAQ dataset training** — Train support answers from a server-side FAQ dataset
 - ✅ **Conversation history** — Full history sent as LLM context
 - ✅ **Dark theme** — Glassmorphism UI with Inter font
 - ✅ **Responsive** — Works on mobile and desktop
@@ -184,6 +187,22 @@ Base URL: `http://localhost:8000/api`
 | POST | `/conversations` | Create conversation |
 | GET | `/conversations/{id}` | Get conversation + messages |
 | DELETE | `/conversations/{id}` | Delete conversation |
-| POST | `/documents/upload` | Upload PDF/TXT |
+| POST | `/faq/train-dataset` | Train FAQ KB from configured server-side dataset |
 
 Interactive docs: `http://localhost:8000/api/docs`
+
+## Optional: scikit-learn Intent Router
+
+You can add a lightweight custom ML router for intent detection and human-escalation routing.
+
+1. Install backend dependencies (includes `scikit-learn` + `joblib`).
+2. Train model from FAQ dataset:
+   ```bash
+   python backend/scripts/train_intent_model.py \
+     --dataset backend/data/faq_dataset.json \
+     --output backend/models/intent_router.joblib
+   ```
+3. Enable in `backend/.env`:
+   - `ENABLE_INTENT_ROUTER=true`
+   - `INTENT_MODEL_PATH=backend/models/intent_router.joblib`
+   - `INTENT_CONFIDENCE_THRESHOLD=0.65`
