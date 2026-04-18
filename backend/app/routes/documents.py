@@ -20,6 +20,12 @@ async def upload_document(
     conversation_id: Optional[str] = Form(None),
     user_id: str = Depends(get_current_user),
 ):
+    if not settings.ENABLE_USER_FILE_UPLOADS:
+        raise HTTPException(
+            status_code=403,
+            detail="User file uploads are disabled for this deployment.",
+        )
+
     filename = file.filename or "unknown"
     ext = "." + filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
     if ext not in ALLOWED_EXTENSIONS:

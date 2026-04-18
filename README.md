@@ -142,6 +142,9 @@ npm run dev
    - `FRONTEND_URL` → your Vercel URL
 6. Deploy — note your Render backend URL
 
+> If you deploy Render in native Python mode (not Docker), keep `backend/runtime.txt` so Render uses Python 3.11.
+> This avoids `pydantic-core` build failures that happen on unsupported bleeding-edge Python runtimes.
+
 ### Frontend → Vercel
 
 1. Go to [vercel.com](https://vercel.com) → **New Project**
@@ -160,7 +163,7 @@ npm run dev
 - ✅ **Authentication** — Custom JWT auth with bcrypt password hashing
 - ✅ **Multi-conversation** — Create, switch, and delete conversations
 - ✅ **Streaming responses** — Real-time SSE streaming from Groq
-- ✅ **Document upload** — PDF and TXT extraction for context
+- ✅ **FAQ dataset training** — Train support answers from a server-side FAQ dataset
 - ✅ **Conversation history** — Full history sent as LLM context
 - ✅ **Dark theme** — Glassmorphism UI with Inter font
 - ✅ **Responsive** — Works on mobile and desktop
@@ -184,6 +187,6 @@ Base URL: `http://localhost:8000/api`
 | POST | `/conversations` | Create conversation |
 | GET | `/conversations/{id}` | Get conversation + messages |
 | DELETE | `/conversations/{id}` | Delete conversation |
-| POST | `/documents/upload` | Upload PDF/TXT |
+| POST | `/faq/train-dataset` | Train FAQ KB from configured server-side dataset |
 
 Interactive docs: `http://localhost:8000/api/docs`
