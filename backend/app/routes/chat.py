@@ -232,6 +232,12 @@ async def chat_stream(request: ChatRequest, user_id: str = Depends(get_current_u
     history = await db.get_messages(conversation_id)
     history_dicts = [{"role": m["role"], "content": m["content"]} for m in history]
     await db.save_message(conversation_id, "user", request.message)
+    await _ensure_user_faq_seeded(user_id)
+    faq_matches = await db.search_faq_entries(user_id, request.message, limit=3)
+    composed_context = None
+    if faq_matches:
+        faq_context = _build_faq_context(faq_matches)
+        composed_context = f"--- FAQ Matches ---\n{faq_context}"
 
     intent_handoff = await _intent_handoff_message(user_id, conversation_id, request.message)
     if intent_handoff:
