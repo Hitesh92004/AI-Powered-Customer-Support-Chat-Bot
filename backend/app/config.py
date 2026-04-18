@@ -9,14 +9,9 @@ class Settings(BaseSettings):
     # Neon PostgreSQL
     DATABASE_URL: str = ""          # postgresql+asyncpg://user:pass@host/db
 
-    # Gemini API
-    GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-1.5-flash-latest"
-
-    # Groq API (fallback / optional primary)
+    # Groq API
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
-    PRIMARY_LLM_PROVIDER: str = "groq"  # groq | gemini
 
     # JWT Auth
     JWT_SECRET_KEY: str = "change-this-to-a-long-random-secret"

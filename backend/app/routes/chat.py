@@ -9,22 +9,13 @@ from fastapi.responses import StreamingResponse
 from app.middleware.auth import get_current_user
 from app.models.schemas import ChatRequest, ChatResponse
 from app.config import settings
-from app.services import gemini_service, groq_service
+from app.services import groq_service
 from app.services.faq_service import load_faq_entries_from_dataset
 from app.services.intent_service import intent_router_service
 from app.services import db_service as db
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
-
-
-def _fallback_not_configured_message() -> str:
-    return "No backup LLM provider is configured. Add both GROQ_API_KEY and GEMINI_API_KEY for failover."
-
-
-def _primary_provider() -> str:
-    provider = (settings.PRIMARY_LLM_PROVIDER or "groq").strip().lower()
-    return provider if provider in {"groq", "gemini"} else "groq"
 
 
 def _build_faq_context(faq_matches: list[dict]) -> str:
@@ -149,44 +140,18 @@ async def chat(request: ChatRequest, user_id: str = Depends(get_current_user)):
         faq_context = _build_faq_context(faq_matches)
         composed_context = f"--- FAQ Matches ---\n{faq_context}"
 
-    # Get AI response (primary provider + automatic fallback)
-    provider = _primary_provider()
+    if not settings.GROQ_API_KEY:
+        raise HTTPException(status_code=503, detail="GROQ_API_KEY is not configured.")
+
     try:
-        if provider == "groq":
-            if not settings.GROQ_API_KEY:
-                raise RuntimeError("Groq is set as primary, but GROQ_API_KEY is missing.")
-            ai_response = await groq_service.groq_service.chat(
-                user_message=request.message,
-                history=history_dicts,
-                document_context=composed_context,
-            )
-        else:
-            ai_response = await gemini_service.gemini_service.chat(
-                user_message=request.message,
-                history=history_dicts,
-                document_context=composed_context,
-            )
-    except RuntimeError as primary_error:
-        logger.warning("Primary LLM (%s) failed: %s", provider, primary_error)
-        try:
-            if provider == "groq":
-                if not settings.GEMINI_API_KEY:
-                    raise HTTPException(status_code=503, detail=_fallback_not_configured_message())
-                ai_response = await gemini_service.gemini_service.chat(
-                    user_message=request.message,
-                    history=history_dicts,
-                    document_context=composed_context,
-                )
-            else:
-                if not settings.GROQ_API_KEY:
-                    raise HTTPException(status_code=503, detail=_fallback_not_configured_message())
-                ai_response = await groq_service.groq_service.chat(
-                    user_message=request.message,
-                    history=history_dicts,
-                    document_context=composed_context,
-                )
-        except RuntimeError as fallback_error:
-            raise HTTPException(status_code=503, detail=str(fallback_error))
+        ai_response = await groq_service.groq_service.chat(
+            user_message=request.message,
+            history=history_dicts,
+            document_context=composed_context,
+        )
+    except RuntimeError as error:
+        logger.warning("LLM failed: %s", error)
+        raise HTTPException(status_code=503, detail=str(error))
 
     # Save assistant message
     assistant_msg = await db.save_message(conversation_id, "assistant", ai_response)
@@ -251,53 +216,23 @@ async def chat_stream(request: ChatRequest, user_id: str = Depends(get_current_u
                     yield f"data: {json.dumps({'type': 'done', 'conversation_id': conversation_id})}\n\n"
                     return
 
-        provider = _primary_provider()
+        if not settings.GROQ_API_KEY:
+            yield f"data: {json.dumps({'type': 'error', 'message': 'GROQ_API_KEY is not configured.'})}\n\n"
+            return
+
         try:
-            if provider == "groq":
-                if not settings.GROQ_API_KEY:
-                    raise RuntimeError("Groq is set as primary, but GROQ_API_KEY is missing.")
-                stream = groq_service.groq_service.stream_chat(
-                    user_message=request.message,
-                    history=history_dicts,
-                    document_context=composed_context,
-                )
-            else:
-                stream = gemini_service.gemini_service.stream_chat(
-                    user_message=request.message,
-                    history=history_dicts,
-                    document_context=composed_context,
-                )
+            stream = groq_service.groq_service.stream_chat(
+                user_message=request.message,
+                history=history_dicts,
+                document_context=composed_context,
+            )
             async for chunk in stream:
                 full_response += chunk
                 yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
-        except RuntimeError as primary_error:
-            logger.warning("Primary streaming LLM (%s) failed: %s", provider, primary_error)
-            try:
-                if provider == "groq":
-                    if not settings.GEMINI_API_KEY:
-                        yield f"data: {json.dumps({'type': 'error', 'message': _fallback_not_configured_message()})}\n\n"
-                        return
-                    fallback_stream = gemini_service.gemini_service.stream_chat(
-                        user_message=request.message,
-                        history=history_dicts,
-                        document_context=composed_context,
-                    )
-                else:
-                    if not settings.GROQ_API_KEY:
-                        yield f"data: {json.dumps({'type': 'error', 'message': _fallback_not_configured_message()})}\n\n"
-                        return
-                    fallback_stream = groq_service.groq_service.stream_chat(
-                        user_message=request.message,
-                        history=history_dicts,
-                        document_context=composed_context,
-                    )
-
-                async for chunk in fallback_stream:
-                    full_response += chunk
-                    yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
-            except RuntimeError as fallback_error:
-                yield f"data: {json.dumps({'type': 'error', 'message': str(fallback_error)})}\n\n"
-                return
+        except RuntimeError as error:
+            logger.warning("LLM streaming failed: %s", error)
+            yield f"data: {json.dumps({'type': 'error', 'message': str(error)})}\n\n"
+            return
 
         await db.save_message(conversation_id, "assistant", full_response)
         yield f"data: {json.dumps({'type': 'done', 'conversation_id': conversation_id})}\n\n"
