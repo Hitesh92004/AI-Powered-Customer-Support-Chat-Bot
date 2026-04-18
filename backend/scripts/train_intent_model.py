@@ -2,9 +2,9 @@
 Train a simple scikit-learn intent router from FAQ dataset.
 
 Usage:
-  python backend/scripts/train_intent_model.py \
-      --dataset backend/data/faq_dataset.json \
-      --output backend/models/intent_router.joblib
+  python scripts/train_intent_model.py \
+      --dataset data/faq_dataset.json \
+      --output models/intent_router.joblib
 """
 from __future__ import annotations
 
@@ -20,8 +20,8 @@ from sklearn.pipeline import Pipeline
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset", default="backend/data/faq_dataset.json")
-    parser.add_argument("--output", default="backend/models/intent_router.joblib")
+    parser.add_argument("--dataset", default="data/faq_dataset.json")
+    parser.add_argument("--output", default="models/intent_router.joblib")
     return parser.parse_args()
 
 
