@@ -190,3 +190,19 @@ Base URL: `http://localhost:8000/api`
 | POST | `/faq/train-dataset` | Train FAQ KB from configured server-side dataset |
 
 Interactive docs: `http://localhost:8000/api/docs`
+
+## Optional: scikit-learn Intent Router
+
+You can add a lightweight custom ML router for intent detection and human-escalation routing.
+
+1. Install backend dependencies (includes `scikit-learn` + `joblib`).
+2. Train model from FAQ dataset:
+   ```bash
+   python backend/scripts/train_intent_model.py \
+     --dataset backend/data/faq_dataset.json \
+     --output backend/models/intent_router.joblib
+   ```
+3. Enable in `backend/.env`:
+   - `ENABLE_INTENT_ROUTER=true`
+   - `INTENT_MODEL_PATH=backend/models/intent_router.joblib`
+   - `INTENT_CONFIDENCE_THRESHOLD=0.65`

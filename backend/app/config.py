@@ -41,6 +41,9 @@ class Settings(BaseSettings):
 
     # FAQ dataset training (server-side)
     FAQ_DATASET_PATH: str = "backend/data/faq_dataset.json"
+    ENABLE_INTENT_ROUTER: bool = False
+    INTENT_MODEL_PATH: str = "backend/models/intent_router.joblib"
+    INTENT_CONFIDENCE_THRESHOLD: float = 0.65
 
     model_config = {
         "env_file": ".env",

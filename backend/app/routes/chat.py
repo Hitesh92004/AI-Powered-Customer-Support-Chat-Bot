@@ -11,6 +11,7 @@ from app.models.schemas import ChatRequest, ChatResponse
 from app.config import settings
 from app.services import gemini_service, groq_service
 from app.services.faq_service import load_faq_entries_from_dataset
+from app.services.intent_service import intent_router_service
 from app.services import db_service as db
 
 logger = logging.getLogger(__name__)
@@ -65,6 +66,36 @@ async def _ensure_user_faq_seeded(user_id: str) -> None:
         logger.info("Auto-seeded %s FAQ entries for user %s", inserted, user_id)
 
 
+async def _intent_handoff_message(
+    user_id: str,
+    conversation_id: str,
+    user_message: str,
+) -> str | None:
+    """
+    Use sklearn intent classifier to trigger human handoff when confidence is high
+    for 'human' escalation intent.
+    """
+    prediction = intent_router_service.predict(user_message)
+    if not prediction:
+        return None
+
+    label = (prediction.get("label") or "").strip().lower()
+    confidence = float(prediction.get("confidence") or 0.0)
+    if label != "human" or confidence < settings.INTENT_CONFIDENCE_THRESHOLD:
+        return None
+
+    ticket = await db.create_handoff_ticket(
+        user_id=user_id,
+        conversation_id=conversation_id,
+        user_message=user_message,
+        reason=f"Intent router escalation (label={label}, confidence={confidence:.3f})",
+    )
+    return (
+        "I understood that you'd like to talk to a human support agent. "
+        f"I've escalated your request (ticket: {str(ticket['id'])[:8]})."
+    )
+
+
 @router.post("", response_model=ChatResponse)
 async def chat(request: ChatRequest, user_id: str = Depends(get_current_user)):
     """Send a message and get a full AI response."""
@@ -85,6 +116,16 @@ async def chat(request: ChatRequest, user_id: str = Depends(get_current_user)):
 
     # Save user message
     user_msg = await db.save_message(conversation_id, "user", request.message)
+
+    intent_handoff = await _intent_handoff_message(user_id, conversation_id, request.message)
+    if intent_handoff:
+        assistant_msg = await db.save_message(conversation_id, "assistant", intent_handoff)
+        return ChatResponse(
+            response=intent_handoff,
+            conversation_id=conversation_id,
+            user_message_id=str(user_msg["id"]),
+            assistant_message_id=str(assistant_msg["id"]),
+        )
 
     await _ensure_user_faq_seeded(user_id)
     faq_matches = await db.search_faq_entries(user_id, request.message, limit=3)
@@ -191,6 +232,24 @@ async def chat_stream(request: ChatRequest, user_id: str = Depends(get_current_u
     history = await db.get_messages(conversation_id)
     history_dicts = [{"role": m["role"], "content": m["content"]} for m in history]
     await db.save_message(conversation_id, "user", request.message)
+    await _ensure_user_faq_seeded(user_id)
+    faq_matches = await db.search_faq_entries(user_id, request.message, limit=3)
+    composed_context = None
+    if faq_matches:
+        faq_context = _build_faq_context(faq_matches)
+        composed_context = f"--- FAQ Matches ---\n{faq_context}"
+
+    intent_handoff = await _intent_handoff_message(user_id, conversation_id, request.message)
+    if intent_handoff:
+        async def intent_only_stream():
+            yield f"data: {json.dumps({'type': 'meta', 'conversation_id': conversation_id})}\n\n"
+            await db.save_message(conversation_id, "assistant", intent_handoff)
+            yield f"data: {json.dumps({'type': 'chunk', 'content': intent_handoff})}\n\n"
+            yield f"data: {json.dumps({'type': 'done', 'conversation_id': conversation_id})}\n\n"
+
+        return StreamingResponse(intent_only_stream(), media_type="text/event-stream",
+                                 headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
     await _ensure_user_faq_seeded(user_id)
     faq_matches = await db.search_faq_entries(user_id, request.message, limit=3)
     composed_context = None
