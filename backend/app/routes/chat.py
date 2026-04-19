@@ -37,6 +37,12 @@ async def _ensure_user_faq_seeded(user_id: str) -> None:
         return
 
     source_name = settings.FAQ_DATASET_PATH.split("/")[-1]
+    
+    # Fast path: check count before checking each individually.
+    count = await db.get_faq_entries_count(user_id)
+    if count >= len(entries):
+        return
+        
     inserted = 0
     for entry in entries:
         if await db.faq_entry_exists(user_id=user_id, question=entry["question"]):
