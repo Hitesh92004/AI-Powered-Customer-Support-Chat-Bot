@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.services.db_service import init_pool, close_pool
-from app.routes import chat, conversations, documents, auth, faq
+from app.routes import chat, conversations, documents, auth, faq, orders, admin
 
 logging.basicConfig(
     level=logging.INFO,
@@ -52,6 +52,8 @@ app.include_router(chat.router)
 app.include_router(conversations.router)
 app.include_router(documents.router)
 app.include_router(faq.router)
+app.include_router(orders.router)
+app.include_router(admin.router)
 
 
 @app.get("/api/health", tags=["Health"])

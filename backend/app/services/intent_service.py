@@ -9,8 +9,10 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 
 import joblib
+import re
 
 from app.config import settings
+from app.services.groq_service import groq_service
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +59,34 @@ class IntentRouterService:
             logger.error("Intent prediction failed: %s", e)
             return None
 
+    async def extract_order_id(self, text: str) -> Optional[str]:
+        """
+        Uses LLM to extract an order ID from the text if it exists.
+        Returns the order ID (alphanumeric string) or None.
+        """
+        prompt = (
+            f"Does this text contain an order ID or order number? "
+            f"If it does, respond ONLY with the exact order ID string (alphanumeric). "
+            f"If it does not, respond ONLY with 'NONE'.\n\n"
+            f"Text: \"{text}\""
+        )
+        try:
+            response = await groq_service.client.chat.completions.create(
+                model="llama3-8b-8192",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=20,
+                temperature=0.0
+            )
+            result = response.choices[0].message.content.strip().replace('"', '').replace("'", "")
+            if result.upper() == "NONE" or not result:
+                return None
+                
+            # Clean up the output to return just alphanumeric chars and dashes
+            extracted = re.sub(r'[^a-zA-Z0-9\-]', '', result)
+            return extracted if extracted else None
+        except Exception as e:
+            logger.error("Failed to extract order ID: %s", e)
+            return None
+
 
 intent_router_service = IntentRouterService()
-

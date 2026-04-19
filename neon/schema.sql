@@ -29,6 +29,8 @@ CREATE TABLE IF NOT EXISTS messages (
   conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE NOT NULL,
   role            TEXT NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
   content         TEXT NOT NULL,
+  language        TEXT DEFAULT 'en',
+  sentiment       TEXT,
   created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -67,6 +69,26 @@ CREATE TABLE IF NOT EXISTS handoff_tickets (
   status          TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'resolved')),
   created_at      TIMESTAMPTZ DEFAULT NOW(),
   resolved_at     TIMESTAMPTZ
+);
+
+-- 7. Tickets (Escalation) --------------------------------------
+CREATE TABLE IF NOT EXISTS tickets (
+  id              UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id         UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+  issue           TEXT NOT NULL,
+  status          TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'resolved', 'closed')),
+  priority        TEXT NOT NULL DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
+  created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 8. Orders ----------------------------------------------------
+CREATE TABLE IF NOT EXISTS orders (
+  id                UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id           UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+  order_id          TEXT UNIQUE NOT NULL,
+  status            TEXT NOT NULL DEFAULT 'pending',
+  expected_delivery TIMESTAMPTZ,
+  created_at        TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ============================================================

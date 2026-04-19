@@ -144,28 +144,32 @@ async def delete_conversation(conversation_id: str, user_id: str):
 
 # ─── Message Operations ───────────────────────────────────────────────────────
 
-async def save_message(conversation_id: str, role: str, content: str) -> Dict:
+async def save_message(conversation_id: str, role: str, content: str, language: str = "en", sentiment: str = None) -> Dict:
     pool = get_pool()
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
-            """INSERT INTO messages (conversation_id, role, content)
-               VALUES ($1, $2, $3)
-               RETURNING id, conversation_id, role, content, created_at""",
-            conversation_id, role, content
+            """INSERT INTO messages (conversation_id, role, content, language, sentiment)
+               VALUES ($1, $2, $3, $4, $5)
+               RETURNING id, conversation_id, role, content, language, sentiment, created_at""",
+            conversation_id, role, content, language, sentiment
         )
         await update_conversation_timestamp(conversation_id)
         return _row_to_dict(row)
 
 
-async def get_messages(conversation_id: str) -> List[Dict]:
+async def get_messages(conversation_id: str, limit: int = 10) -> List[Dict]:
     pool = get_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch(
-            """SELECT id, conversation_id, role, content, created_at
-               FROM messages
-               WHERE conversation_id = $1
+            """SELECT id, conversation_id, role, content, language, sentiment, created_at
+               FROM (
+                   SELECT * FROM messages
+                   WHERE conversation_id = $1
+                   ORDER BY created_at DESC
+                   LIMIT $2
+               ) sub
                ORDER BY created_at ASC""",
-            conversation_id
+            conversation_id, limit
         )
         return _rows_to_dicts(rows)
 
@@ -297,3 +301,52 @@ async def create_handoff_ticket(
             user_id, conversation_id, user_message, reason, status
         )
         return _row_to_dict(row)
+
+
+# ─── Ticket Operations ────────────────────────────────────────────────────────
+
+async def create_ticket(user_id: str, issue: str, priority: str = "medium", status: str = "open") -> Dict:
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            """INSERT INTO tickets (user_id, issue, priority, status)
+               VALUES ($1, $2, $3, $4)
+               RETURNING id, user_id, issue, priority, status, created_at""",
+            user_id, issue, priority, status
+        )
+        return _row_to_dict(row)
+
+
+# ─── Order Operations ─────────────────────────────────────────────────────────
+
+async def get_order_by_order_id(order_id: str) -> Optional[Dict]:
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT id, user_id, order_id, status, expected_delivery, created_at FROM orders WHERE order_id = $1",
+            order_id
+        )
+        return _row_to_dict(row)
+
+
+# ─── Admin Operations ─────────────────────────────────────────────────────────
+
+async def get_admin_stats() -> Dict:
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        total_chats = await conn.fetchval("SELECT COUNT(*) FROM conversations")
+        total_tickets = await conn.fetchval("SELECT COUNT(*) FROM tickets")
+        
+        total_negative = await conn.fetchval("SELECT COUNT(*) FROM messages WHERE sentiment = 'negative'")
+        total_positive = await conn.fetchval("SELECT COUNT(*) FROM messages WHERE sentiment = 'positive'")
+        total_neutral = await conn.fetchval("SELECT COUNT(*) FROM messages WHERE sentiment = 'neutral'")
+        
+        return {
+            "total_chats": total_chats or 0,
+            "total_tickets": total_tickets or 0,
+            "sentiment_distribution": {
+                "positive": total_positive or 0,
+                "neutral": total_neutral or 0,
+                "negative": total_negative or 0
+            }
+        }
