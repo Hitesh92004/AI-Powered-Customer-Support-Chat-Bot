@@ -24,8 +24,8 @@ export default function ChatWindow({ messages, isLoading, streamingContent, onSu
           {[
             'What payment methods do you accept?',
             'What is your return policy?',
-            'How can I track my order?',
-            'Tell me about your EMI options',
+            'Track my order ORD-5001',
+            'Where is my order ORD-5002?',
           ].map((prompt, i) => (
             <button
               key={i}
@@ -37,6 +37,24 @@ export default function ChatWindow({ messages, isLoading, streamingContent, onSu
               {prompt}
             </button>
           ))}
+        </div>
+
+        {/* Demo Order IDs Banner */}
+        <div className="mt-6 w-full max-w-lg bg-primary/5 border border-primary/20 rounded-xl p-4">
+          <p className="text-xs text-primary/80 font-semibold uppercase tracking-wider mb-1">Demo Order IDs to Try</p>
+          <p className="text-xs text-gray-400 mb-3 font-medium">Type <span className="text-white">"Track my order [ID]"</span> to test the live database queries!</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {['ORD-5001', 'ORD-5002', 'ORD-5003'].map(id => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => onSuggestionClick?.(`What is the status of order ${id}?`)}
+                className="px-3 py-1 text-xs font-mono rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
+              >
+                {id}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     );

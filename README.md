@@ -6,6 +6,10 @@
   <p><b>An enterprise-ready AI chatbot integrating advanced Machine Learning (Scikit-learn) intention routing, Serverless PostgreSQL vector search for RAG, and lighting-fast Groq LLM streaming.</b></p>
   
   <p>
+    <a href="https://ai-powered-customer-support-chat-bo.vercel.app/" target="_blank"><img src="https://img.shields.io/badge/Live_Demo-FF4B4B?style=for-the-badge&logoColor=white" alt="Live Demo" /></a>
+  </p>
+
+  <p>
     <img alt="React" src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
     <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" />
     <img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />

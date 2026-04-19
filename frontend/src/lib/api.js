@@ -16,7 +16,6 @@ const normalizeApiBaseUrl = (rawUrl) => {
     }
     return parsed.toString().replace(/\/+$/, '');
   } catch {
-    // Handle non-absolute URLs gracefully
     return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
   }
 };
@@ -25,25 +24,21 @@ const API_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_URL);
 
 export const api = axios.create({ baseURL: API_URL });
 
-// Attach token from localStorage on every request
+const getSessionId = () => {
+  let sessionId = localStorage.getItem('anonymous_session_id');
+  if (!sessionId) {
+    // Generate a simple random UUID-like string for anonymous tracking
+    sessionId = 'guest-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    localStorage.setItem('anonymous_session_id', sessionId);
+  }
+  return sessionId;
+};
+
+// Attach session ID on every request
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  config.headers['X-User-Id'] = getSessionId();
   return config;
 });
-
-// Redirect to login on 401
-api.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
-    return Promise.reject(err);
-  }
-);
 
 /**
  * Stream a chat response via Server-Sent Events.
@@ -53,14 +48,13 @@ export const streamChat = async (
   onChunk, onDone, onError
 ) => {
   try {
-    const token = localStorage.getItem('access_token');
-    if (!token) throw new Error('Not authenticated');
+    const sessionId = getSessionId();
 
     const response = await fetch(`${API_URL}/chat/stream`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        'X-User-Id': sessionId,
       },
       body: JSON.stringify({
         message,
@@ -69,12 +63,6 @@ export const streamChat = async (
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
-        return;
-      }
       throw new Error(`HTTP error ${response.status}`);
     }
 

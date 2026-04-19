@@ -1,26 +1,21 @@
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { MessageSquare, Plus, LogOut, Menu, X } from 'lucide-react';
+import { MessageSquare, Plus, Trash2, Menu, X, Rocket } from 'lucide-react';
 import AboutModal from './AboutModal';
 import { api } from '../lib/api';
 
 export default function Sidebar({ conversations, currentId, onSelect, onNew }) {
-  const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleSignOut = async () => {
-    // If this is the demo account, clear all conversations before logging out
-    if (user?.email === 'demo@example.com') {
-      try {
-        await api.delete('/conversations/all');
-      } catch {
-        // Non-critical, continue with sign out
-      }
+  const handleClearDemo = async () => {
+    try {
+       // Optional: implement clear all backend endpoint if needed in future
+       localStorage.removeItem('anonymous_session_id');
+       window.location.reload();
+    } catch {
+       window.location.reload();
     }
-    await signOut();
-    navigate('/login');
   };
 
   const SidebarContent = () => (
@@ -71,15 +66,16 @@ export default function Sidebar({ conversations, currentId, onSelect, onNew }) {
           <AboutModal triggerClassName="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors text-sm" />
         </div>
         <div className="flex items-center justify-between">
-          <div className="text-xs text-gray-400 truncate max-w-[150px]">
-            {user?.email}
+          <div className="text-xs text-primary flex items-center gap-1 font-semibold">
+            <Rocket size={14} />
+            Demo Mode Active
           </div>
           <button
-            onClick={handleSignOut}
-            className="text-gray-400 hover:text-white transition-colors"
-            title="Sign Out"
+            onClick={handleClearDemo}
+            className="text-gray-400 hover:text-red-400 transition-colors flex items-center pr-1"
+            title="Clear Demo Session"
           >
-            <LogOut size={18} />
+            <Trash2 size={18} />
           </button>
         </div>
       </div>
