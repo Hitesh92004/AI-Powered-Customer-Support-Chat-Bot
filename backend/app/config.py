@@ -7,7 +7,7 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     # Neon PostgreSQL
-    DATABASE_URL: str = ""          # postgresql+asyncpg://user:pass@host/db
+    DATABASE_URL: str = "postgresql://neondb_owner:npg_niNBX67ZGLTO@ep-proud-wave-a1ga55t4-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"          # postgresql+asyncpg://user:pass@host/db
 
     # Groq API
     GROQ_API_KEY: str = ""
