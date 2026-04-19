@@ -3,10 +3,12 @@
   
   # AI Support Agent Platform 🚀
   
-  <p><b>An enterprise-ready AI chatbot integrating advanced Machine Learning (Scikit-learn) intention routing, Serverless PostgreSQL vector search for RAG, and lighting-fast Groq LLM streaming.</b></p>
+  <p><b>An enterprise-ready Agentic AI platform integrating Scikit-learn intent routing, automated sentiment-based escalation, serverless RAG, and multi-lingual translation middleware.</b></p>
   
   <p>
     <a href="https://ai-powered-customer-support-chat-bo.vercel.app/" target="_blank"><img src="https://img.shields.io/badge/Live_Demo-FF4B4B?style=for-the-badge&logoColor=white" alt="Live Demo" /></a>
+    <br/>
+    <i>Note: Live demo uses Frictionless Anonymous Sessions. Auth is provided in source but bypassed for ease of review.</i>
   </p>
 
   <p>
@@ -24,27 +26,33 @@
 
 This application simulates a cutting-edge customer service AI agent for e-commerce. It uses modern architectures over archaic single-prompt LLM setups:
 
-1. **Intent Extraction:** Uses a custom `scikit-learn` Logistic Regression ML model (TF-IDF vectorizer) to predict if a user is frustrated or needs human intervention, triggering an immediate database handoff ticket instead of wasting token context.
-2. **Retrieval-Augmented Generation (RAG):** When interacting, it utilizes **Neon PostgreSQL's full-text/vector search** to query a proprietary FAQ dataset, mapping identical issues and seeding the LLM with localized rules context first.
-3. **Groq LPU Acceleration:** The final augmented query is orchestrated through **Groq (Llama 3 70B)** to provide practically instant chunked SSE token streaming to the beautiful glassmorphic React frontend.
+1. **Translation & Sentiment Pipeline:** Every query passes through a dual-middleware layer. It detects the language (e.g., Hindi/Spanish) and translates it for internal processing, while secondary **LLM-based sentiment analysis** monitors for user frustration.
+2. **Intent Extraction & Escalation:** Uses a custom `scikit-learn` Logistic Regression ML model to predict human intervention needs. If sentiment is negative, it triggers an **automated ticket escalation** in the database before the LLM even responds.
+3. **Retrieval-Augmented Generation (RAG):** Utilizes **Neon PostgreSQL's full-text search** to query a proprietary FAQ dataset, seeding the Llama-3-70B model with localized knowledge context to prevent hallucinations.
 
 ```mermaid
-graph LR
-    A[User UI React] -- SSE Stream --> B(FastAPI Backend)
-    B -- TF-IDF NLP --> C{Intent Router ML}
-    C -- Escalate --> D[Human Handoff Ticket DB]
-    C -- Support --> E[Neon PG Search]
-    E -- RAG Context --> F((Groq Llama 3 LLM))
-    F -- Real-Time Response --> A 
+graph TD
+    A[User React UI] --> B{Middleware}
+    B -- Translation --> C[English Context]
+    B -- Sentiment --> D{Is Negative?}
+    D -- Yes --> E[Auto-Ticket Neon DB]
+    C --> F{Intent Router ML}
+    F -- Escalation --> E
+    F -- Support --> G[Neon FAQ Search]
+    G -- RAG Context --> H((Groq LPU LLM))
+    H -- Stream Response --> I[Translation Layer]
+    I --> A
 ```
 
 ---
 
 ## ✨ Features
-- **Custom JWT Auth:** Full-blown authentication pipeline equipped with bcrypt hashing and Python-JOSE encryption.
-- **RAG FAQ Context:** Loads dynamic JSON datasets natively into an asyncpg Postgres pool for accurate, zero-hallucination semantic answering.
+- **Automated Sentiment Escalation:** Real-time sentiment analysis monitors user tone, automatically creating high-priority support tickets in PostgreSQL for frustrated customers.
+- **Cross-Lingual Intelligence:** Built-in translation pipe supporting English and Hindi, allowing the agent to process global queries while maintaining internal consistency.
+- **Hybrid Intent Routing:** Combines 'classical' ML (Scikit-Learn) for high-precision routing with Generative AI (Groq/Llama-3) for conversational depth.
+- **RAG FAQ Context:** Loads dynamic JSON datasets into an asyncpg Postgres pool for accurate, zero-hallucination semantic answering.
 - **Real-Time Token Streaming:** Server-Sent Events (SSE) provide a ChatGPT-like responsive UI rather than blocking HTTP awaits.
-- **Dynamic Glassmorphic UI:** A beautifully customized Tailwind interface with pulsing animations, scrollable modals, and markdown chat bubbles.
+- **Dynamic Glassmorphic UI:** A beautifully customized Tailwind interface with pulsing animations, scrollable modals, and markdown support.
 
 ---
 
