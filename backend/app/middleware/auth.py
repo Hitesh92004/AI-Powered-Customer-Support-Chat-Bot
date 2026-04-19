@@ -1,28 +1,13 @@
-"""
-Authentication middleware — validates JWT tokens from Authorization header.
-"""
-from fastapi import HTTPException, Security, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from app.services.auth_service import decode_access_token
+from fastapi import Security, HTTPException, status
+from fastapi.security import APIKeyHeader
 
-security = HTTPBearer()
+user_id_header = APIKeyHeader(name="X-User-Id", auto_error=False)
 
-
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Security(security),
-) -> str:
+async def get_current_user(user_id: str = Security(user_id_header)) -> str:
     """
-    FastAPI dependency — validates the Bearer JWT token and returns user_id.
-    Usage: user_id: str = Depends(get_current_user)
+    Extracts the anonymous session ID from the X-User-Id header.
+    Defaults to 'anonymous-demo' if none provided for testing via Swagger UI.
     """
-    token = credentials.credentials
-    payload = decode_access_token(token)
-
-    if not payload or "sub" not in payload:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired authentication token.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    return payload["sub"]  # user_id (UUID string)
+    if not user_id:
+        return "anonymous-demo"
+    return user_id

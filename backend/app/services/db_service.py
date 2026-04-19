@@ -50,39 +50,6 @@ def _rows_to_dicts(rows) -> List[Dict]:
     return [dict(r) for r in rows]
 
 
-# ─── User Operations ─────────────────────────────────────────────────────────
-
-async def create_user(email: str, password_hash: str) -> Dict:
-    pool = get_pool()
-    async with pool.acquire() as conn:
-        row = await conn.fetchrow(
-            """INSERT INTO users (email, password_hash) VALUES ($1, $2)
-               RETURNING id, email, created_at""",
-            email, password_hash
-        )
-        return _row_to_dict(row)
-
-
-async def get_user_by_email(email: str) -> Optional[Dict]:
-    pool = get_pool()
-    async with pool.acquire() as conn:
-        row = await conn.fetchrow(
-            "SELECT id, email, password_hash, created_at FROM users WHERE email = $1",
-            email
-        )
-        return _row_to_dict(row)
-
-
-async def get_user_by_id(user_id: str) -> Optional[Dict]:
-    pool = get_pool()
-    async with pool.acquire() as conn:
-        row = await conn.fetchrow(
-            "SELECT id, email, created_at FROM users WHERE id = $1",
-            user_id
-        )
-        return _row_to_dict(row)
-
-
 # ─── Conversation Operations ──────────────────────────────────────────────────
 
 async def create_conversation(user_id: str, title: str = "New Conversation") -> Dict:
