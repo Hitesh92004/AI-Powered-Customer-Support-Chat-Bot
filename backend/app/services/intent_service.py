@@ -61,31 +61,17 @@ class IntentRouterService:
 
     async def extract_order_id(self, text: str) -> Optional[str]:
         """
-        Uses LLM to extract an order ID from the text if it exists.
-        Returns the order ID (alphanumeric string) or None.
+        Uses Regex to extract an order ID from the text if it exists.
+        Returns the order ID (e.g. ORD-5001) or None.
         """
-        prompt = (
-            f"Does this text contain an order ID or order number? "
-            f"If it does, respond ONLY with the exact order ID string (alphanumeric). "
-            f"If it does not, respond ONLY with 'NONE'.\n\n"
-            f"Text: \"{text}\""
-        )
         try:
-            response = await groq_service.client.chat.completions.create(
-                model="llama3-8b-8192",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=20,
-                temperature=0.0
-            )
-            result = response.choices[0].message.content.strip().replace('"', '').replace("'", "")
-            if result.upper() == "NONE" or not result:
-                return None
-                
-            # Clean up the output to return just alphanumeric chars and dashes
-            extracted = re.sub(r'[^a-zA-Z0-9\-]', '', result)
-            return extracted if extracted else None
+            # Look for explicit exact matching patterns (ORD-XXXX)
+            match = re.search(r'ORD-\d{4,}', text, re.IGNORECASE)
+            if match:
+                return match.group(0).upper()
+            return None
         except Exception as e:
-            logger.error("Failed to extract order ID: %s", e)
+            logger.error("Failed to extract order ID via regex: %s", e)
             return None
 
 
