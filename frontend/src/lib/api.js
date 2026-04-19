@@ -66,24 +66,14 @@ export const streamChat = async (
       throw new Error(`HTTP error ${response.status}`);
     }
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder('utf-8');
+    const data = await response.json();
+    
+    // Simulate streaming for the UI or just return the entire chunk at once
+    // since the backend currently returns a full standard ChatResponse.
+    onChunk('', data.conversation_id); // send meta
+    onChunk(data.response, data.conversation_id); // send full content
+    onDone(data.conversation_id); // complete
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const lines = decoder.decode(value).split('\n\n');
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        try {
-          const data = JSON.parse(line.slice(6));
-          if (data.type === 'chunk') onChunk(data.content, null);
-          else if (data.type === 'meta') onChunk('', data.conversation_id);
-          else if (data.type === 'done') onDone(data.conversation_id);
-          else if (data.type === 'error') onError(data.message);
-        } catch (e) { /* skip malformed */ }
-      }
-    }
   } catch (err) {
     onError(err.message);
   }
